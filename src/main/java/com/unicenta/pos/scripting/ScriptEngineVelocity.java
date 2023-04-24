@@ -19,8 +19,6 @@
 
 package com.unicenta.pos.scripting;
 
-import com.unicenta.pos.forms.AppView;
-// import com.unicenta.pos.util.ScriptletUtil;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -44,8 +42,6 @@ class ScriptEngineVelocity implements ScriptEngine {
     private static VelocityEngine m_ve = null;
 
     private VelocityContext c = null;
-    private AppView m_App;
-
 
     /** Creates a new instance of ScriptEngineVelocity */
     public ScriptEngineVelocity() throws ScriptException {
@@ -62,7 +58,7 @@ class ScriptEngineVelocity implements ScriptEngine {
     //        m_ve.setProperty("class.resource.loader.description", "Velocity Resource Loader");
     //        m_ve.setProperty("class.resource.loader.appresources", this);
 
-            m_ve.setProperty(RuntimeConstants.RUNTIME_LOG_LOGSYSTEM_CLASS, "org.apache.velocity.runtime.log.NullLogSystem");
+            m_ve.setProperty(RuntimeConstants.RUNTIME_LOG_NAME, "org.apache.velocity.runtime.log.NullLogSystem");
             m_ve.setProperty(RuntimeConstants.ENCODING_DEFAULT, "UTF-8");
             m_ve.setProperty(RuntimeConstants.INPUT_ENCODING, "UTF-8");
             try {
