@@ -19,55 +19,55 @@
 
 package com.unicenta.beans;
 
-import java.awt.*;
-import javax.swing.*;
+import java.awt.Component;
+import java.awt.Dialog;
+import java.awt.Frame;
+import java.awt.Window;
+import java.io.InputStream;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 
-public class JPasswordDialog extends javax.swing.JDialog {
-    
+public class JPasswordDialog extends JDialog {
+
     private static LocaleResources m_resources;
-
     private String m_sPassword;
-        
-    /** Creates new form JPasswordDialog
-     * @param parent
-     * @param modal */
-    public JPasswordDialog(java.awt.Frame parent, boolean modal) {
-        super(parent, modal);            
+
+    public JPasswordDialog(Frame parent, boolean modal) {
+        super(parent, modal);
         init();
     }
-    /** Creates new form JPasswordDialog
-     * @param parent
-     * @param modal */
-    public JPasswordDialog(java.awt.Dialog parent, boolean modal) {
-        super(parent, modal);            
+
+    public JPasswordDialog(Dialog parent, boolean modal) {
+        super(parent, modal);
         init();
-    }    
-    
+    }
+
     private void init() {
-        
         if (m_resources == null) {
             m_resources = new LocaleResources();
             m_resources.addBundleName("beans_messages");
         }
-        
-        initComponents();        
-        getRootPane().setDefaultButton(jcmdOK);   
-        
+
+        initComponents();
+        getRootPane().setDefaultButton(jcmdOK);
+
         m_jpassword.addEditorKeys(m_jKeys);
         m_jpassword.reset();
         m_jpassword.activate();
-        
+
         m_jPanelTitle.setBorder(RoundedBorder.createGradientBorder());
 
         m_sPassword = null;
     }
-    
+
     private void setTitle(String title, String message, Icon icon) {
         setTitle(title);
         m_lblMessage.setText(message);
         m_lblMessage.setIcon(icon);
     }
-    
+
     private static Window getWindow(Component parent) {
         if (parent == null) {
             return new JFrame();
@@ -78,46 +78,25 @@ public class JPasswordDialog extends javax.swing.JDialog {
         }
     }
 
-    /**
-     *
-     * @param parent
-     * @param title
-     * @return
-     */
     public static String showEditPassword(Component parent, String title) {
         return showEditPassword(parent, title, null, null);
     }
 
-    /**
-     *
-     * @param parent
-     * @param title
-     * @param message
-     * @return
-     */
     public static String showEditPassword(Component parent, String title, String message) {
         return showEditPassword(parent, title, message, null);
     }
 
-    /**
-     *
-     * @param parent
-     * @param title
-     * @param message
-     * @param icon
-     * @return
-     */
     public static String showEditPassword(Component parent, String title, String message, Icon icon) {
-        
-        Window window = getWindow(parent);      
-        
+
+        Window window = getWindow(parent);
+
         JPasswordDialog myMsg;
-        if (window instanceof Frame) { 
+        if (window instanceof Frame) {
             myMsg = new JPasswordDialog((Frame) window, true);
         } else {
             myMsg = new JPasswordDialog((Dialog) window, true);
         }
-        
+
         myMsg.setTitle(title, message, icon);
         myMsg.setVisible(true);
         return myMsg.m_sPassword;
@@ -154,7 +133,11 @@ public class JPasswordDialog extends javax.swing.JDialog {
         jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
 
         jcmdCancel.setFont(new java.awt.Font("Arial", 0, 12)); // NOI18N
-        jcmdCancel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/unicenta/images/cancel.png"))); // NOI18N
+        try (InputStream cancelStream = getClass().getClassLoader().getResourceAsStream("/com/unicenta/images/cancel.png")) {
+            jcmdCancel.setIcon(new ImageIcon(cancelStream.readAllBytes()));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
         jcmdCancel.setMargin(new java.awt.Insets(8, 16, 8, 16));
         jcmdCancel.setPreferredSize(new java.awt.Dimension(80, 45));
         jcmdCancel.addActionListener(new java.awt.event.ActionListener() {
@@ -165,7 +148,11 @@ public class JPasswordDialog extends javax.swing.JDialog {
         jPanel1.add(jcmdCancel);
 
         jcmdOK.setFont(new java.awt.Font("Arial", 0, 12)); // NOI18N
-        jcmdOK.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/unicenta/images/ok.png"))); // NOI18N
+        try (InputStream okStream = getClass().getClassLoader().getResourceAsStream("/com/unicenta/images/ok.png")) {
+            jcmdOK.setIcon(new ImageIcon(okStream.readAllBytes()));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
         jcmdOK.setMargin(new java.awt.Insets(8, 16, 8, 16));
         jcmdOK.setPreferredSize(new java.awt.Dimension(80, 45));
         jcmdOK.addActionListener(new java.awt.event.ActionListener() {
@@ -220,35 +207,31 @@ public class JPasswordDialog extends javax.swing.JDialog {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jNumberKeys21KeyPerformed(com.unicenta.beans.JNumberEvent evt) {//GEN-FIRST:event_jNumberKeys21KeyPerformed
- 
-    }//GEN-LAST:event_jNumberKeys21KeyPerformed
-
     private void jcmdOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jcmdOKActionPerformed
-          
-        m_sPassword = m_jpassword.getPassword(); 
+
+        m_sPassword = m_jpassword.getPassword();
         setVisible(false);
-        dispose();     
-        
+        dispose();
+
     }//GEN-LAST:event_jcmdOKActionPerformed
 
     private void jcmdCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jcmdCancelActionPerformed
 
         setVisible(false);
-        dispose();    
-        
+        dispose();
+
     }//GEN-LAST:event_jcmdCancelActionPerformed
 
     private void closeWindow(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_closeWindow
 
         setVisible(false);
         dispose();
-        
+
     }//GEN-LAST:event_closeWindow
 
     private void m_jKeysActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_jKeysActionPerformed
     }//GEN-LAST:event_m_jKeysActionPerformed
-       
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
@@ -262,5 +245,5 @@ public class JPasswordDialog extends javax.swing.JDialog {
     private com.unicenta.editor.JEditorPassword m_jpassword;
     private javax.swing.JLabel m_lblMessage;
     // End of variables declaration//GEN-END:variables
-    
+
 }
