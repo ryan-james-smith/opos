@@ -32,7 +32,7 @@ public class ComboBoxValModel<E> extends AbstractListModel<E> implements ComboBo
 
     private List<E> m_aData;
     private IKeyGetter m_keygetter;
-    private E m_selected;
+    private Object m_selected;
 
     /** Creates a new instance of ComboBoxValModel
      * @param aData
@@ -161,7 +161,7 @@ public class ComboBoxValModel<E> extends AbstractListModel<E> implements ComboBo
     }
 
     @Override
-    public E getSelectedItem() {
+    public Object getSelectedItem() {
         return m_selected;
     }
 
@@ -174,7 +174,7 @@ public class ComboBoxValModel<E> extends AbstractListModel<E> implements ComboBo
     public void setSelectedItem(Object anItem) {
 
         if ((m_selected != null && !m_selected.equals(anItem)) || m_selected == null && anItem != null) {
-            m_selected = (E) anItem;
+            m_selected = anItem;
             fireContentsChanged(this, -1, -1);
         }
     }
