@@ -1,7 +1,6 @@
 
 package com.unicenta.pos.voucher;
 
-import com.unicenta.basic.BasicException;
 import com.unicenta.data.gui.MessageInf;
 import com.unicenta.data.loader.BaseSentence;
 import com.unicenta.data.loader.Datas;
@@ -12,18 +11,13 @@ import com.unicenta.pos.forms.AppLocal;
 import com.unicenta.pos.forms.AppView;
 import com.unicenta.pos.reports.ReportFields;
 import com.unicenta.pos.reports.ReportFieldsArray;
-// import com.unicenta.pos.util.FontUtil;
 import com.unicenta.pos.util.JRViewer400;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dialog;
-import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Window;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -32,174 +26,133 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import javax.swing.*;
-import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
-import net.sf.jasperreports.engine.design.JasperDesign;
-import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
-public abstract class JDialogReportPanel extends javax.swing.JDialog {
+public abstract class JDialogReportPanel extends JDialog {
 
 
-    private JRViewer400 reportviewer = null;   
+    private JRViewer400 reportviewer = null;
     private JasperReport jr = null;
     private AppView m_App;
     private List<String> paramnames = new ArrayList<>();
     private List<Datas> fielddatas = new ArrayList<>();
     private List<String> fieldnames = new ArrayList<>();
     private String sentence;
+
     /** Creates new form JCustomerFinder */
-    private JDialogReportPanel(java.awt.Frame parent, boolean modal) {
+        private JDialogReportPanel(Frame parent, boolean modal) {
         super(parent, modal);
     }
 
     /** Creates new form JCustomerFinder */
-    private JDialogReportPanel(java.awt.Dialog parent, boolean modal) {
+    private JDialogReportPanel(Dialog parent, boolean modal) {
         super(parent, modal);
     }
-    
-    public static JDialogReportPanel getDialog(Component parent,AppView _App,VoucherInfo voucherInfo,BufferedImage image) {
+
+    public static JDialogReportPanel getDialog(Component parent, AppView app, VoucherInfo voucherInfo, BufferedImage image) {
         Window window = getWindow(parent);
-        
+
         JDialogReportPanel myMsg;
-        if (window instanceof Frame) { 
+        if (window instanceof Frame) {
             myMsg = new JDialogReportPanel((Frame) window, true) {
                 @Override
                 protected String getReport() {
-                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    throw new UnsupportedOperationException("Not supported yet.");
                 }
             };
         } else {
             myMsg = new JDialogReportPanel((Dialog) window, true) {
                 @Override
                 protected String getReport() {
-                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    throw new UnsupportedOperationException("Not supported yet.");
                 }
             };
         }
-        myMsg.init(_App,voucherInfo,image);
+        myMsg.init(app, voucherInfo, image);
         myMsg.applyComponentOrientation(parent.getComponentOrientation());
         return myMsg;
     }
-    
-    
-     protected BaseSentence getSentence() {
-        return new StaticSentence(m_App.getSession()
-            , new QBFBuilder(sentence, paramnames.toArray(new String[paramnames.size()]))
-            , null
-            , new SerializerReadBasic(fielddatas.toArray(new Datas[fielddatas.size()])));
-    }
-     
-     
-     protected ReportFields getReportFields() {
-        return new ReportFieldsArray(fieldnames.toArray(new String[fieldnames.size()]));
-    } 
-     
-    
-      private void launchreport(VoucherInfo voucherInfo,BufferedImage image) {     
-        
-     
-        
-        if (jr != null) {
-            try {     
-                
-                // Archivo de recursos
-                String res = "com/unicenta/reports/voucher_messages";//getResourceBundle();  
-                
-                // Parametros y los datos
-//                Object params = (editor == null) ? null : editor.createValue();                
-//                BaseSentence sql= getSentence() ; 
-//                JRDataSource data = new JRDataSourceBasic(sql, getReportFields(), null);
 
-                // Construyo el mapa de los parametros.
-                Map reportparams = new HashMap();
-                reportparams.put("CUSTOMER_NAME", voucherInfo.getCustomerName());
-                reportparams.put("LOGO", image);
-                reportparams.put("CODE", voucherInfo.getVoucherNumber());
-                reportparams.put("ISSUED", new Date());
-                reportparams.put("VALUE", voucherInfo.getAmount());
-                if (res != null) {
-                      reportparams.put("REPORT_RESOURCE_BUNDLE", ResourceBundle.getBundle(res));
-                }                
-              
-//                if (paramsreport.size()>0){
-//                    for (Map.Entry<String, String> entry : paramsreport.entrySet()) {
-//                        reportparams.put(entry.getKey(), entry.getValue()); 
-//                    }
-//                }
-                
-                JasperPrint jp = JasperFillManager.fillReport(jr, reportparams, new    JREmptyDataSource());    
-//               JasperExportManager.exportReportToPdfFile(jp,"E:\\report7.pdf"); 
-                reportviewer.loadJasperPrint(jp);     
-                
-                
-            } catch (MissingResourceException e) {    
-                MessageInf msg = new MessageInf(MessageInf.SGN_WARNING, AppLocal.getIntString("message.cannotloadresourcedata"), e);
-                msg.show(this);
-            } catch (JRException e) {
-                MessageInf msg = new MessageInf(MessageInf.SGN_WARNING, AppLocal.getIntString("message.cannotfillreport"), e);
-                msg.show(this);
-            } 
-//            catch (BasicException e) {
-//                MessageInf msg = new MessageInf(MessageInf.SGN_WARNING, AppLocal.getIntString("message.cannotloadreportdata"), e);
-//                msg.show(this);
-//            }
-        }
+    protected BaseSentence getSentence() {
+        return new StaticSentence(m_App.getSession(),
+                new QBFBuilder(sentence, paramnames.toArray(new String[0])),
+                null,
+                new SerializerReadBasic(fielddatas.toArray(new Datas[0])));
     }
-      
-   
 
-    private void init(AppView _App,VoucherInfo voucherInfo,BufferedImage image) {
-        m_App =_App;
-        initComponents();
-        
-         reportviewer = new JRViewer400(null);                        
-        
-        jPanel4.add(reportviewer, BorderLayout.CENTER);
-        
-        try {     
-            jr = JasperCompileManager.compileReport("com/unicenta/reports/voucher" + ".jrxml");   
-//                jr = JasperCompileManager.compileReport(getClass().getResourceAsStream("reports" +  "/com/unicenta/reports/voucher" + ".jrxml"));   
-        } catch (JRException e) {
-            MessageInf msg = new MessageInf(MessageInf.SGN_WARNING, AppLocal.getIntString("message.cannotloadreport"), e);
+    protected ReportFields getReportFields() {
+        return new ReportFieldsArray(fieldnames.toArray(new String[0]));
+    }
+
+
+      private void launchReport(VoucherInfo voucherInfo, BufferedImage image) {
+    if (jr != null) {
+        try {
+            String res = "com/unicenta/reports/voucher_messages";
+
+            Map<String, Object> reportParams = new HashMap<>();
+            reportParams.put("CUSTOMER_NAME", voucherInfo.getCustomerName());
+            reportParams.put("LOGO", image);
+            reportParams.put("CODE", voucherInfo.getVoucherNumber());
+            reportParams.put("ISSUED", new Date());
+            reportParams.put("VALUE", voucherInfo.getAmount());
+            if (res != null) {
+                reportParams.put("REPORT_RESOURCE_BUNDLE", ResourceBundle.getBundle(res));
+            }
+
+            JasperPrint jp = JasperFillManager.fillReport(jr, reportParams, new JREmptyDataSource());
+            reportviewer.loadJasperPrint(jp);
+
+        } catch (MissingResourceException e) {
+            MessageInf msg = new MessageInf(MessageInf.SGN_WARNING, AppLocal.getIntString("message.cannotloadresourcedata"), e);
             msg.show(this);
-            jr = null;
-        }  
-
-       
-
-    
-        launchreport(voucherInfo,image);
-       
-
-        getRootPane().setDefaultButton(jcmdOK);
-
-        
-    }
-    
-    /**
-     *
-     * @return
-     */
-    protected abstract String getReport();   
-
-    
-    
-    private static Window getWindow(Component parent) {
-        if (parent == null) {
-            return new JFrame();
-        } else if (parent instanceof Frame || parent instanceof Dialog) {
-            return (Window) parent;
-        } else {
-            return getWindow(parent.getParent());
+        } catch (JRException e) {
+            MessageInf msg = new MessageInf(MessageInf.SGN_WARNING, AppLocal.getIntString("message.cannotfillreport"), e);
+            msg.show(this);
         }
     }
-    
-    
+}
+
+    private void init(AppView app, VoucherInfo voucherInfo, BufferedImage image) {
+    m_App = app;
+    initComponents();
+
+    reportviewer = new JRViewer400(null);
+
+    jPanel4.add(reportviewer, BorderLayout.CENTER);
+
+    try {
+        jr = JasperCompileManager.compileReport("com/unicenta/reports/voucher" + ".jrxml");
+    } catch (JRException e) {
+        MessageInf msg = new MessageInf(MessageInf.SGN_WARNING, AppLocal.getIntString("message.cannotloadreport"), e);
+        msg.show(this);
+        jr = null;
+    }
+
+    launchReport(voucherInfo, image);
+
+    getRootPane().setDefaultButton(jcmdOK);
+
+}
+
+    protected abstract String getReport();
+
+private static Window getWindow(Component parent) {
+    if (parent == null) {
+        return new JFrame();
+    } else if (parent instanceof Frame || parent instanceof Dialog) {
+        return (Window) parent;
+    } else {
+        return getWindow(parent.getParent());
+    }
+}
+
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -271,13 +224,13 @@ public abstract class JDialogReportPanel extends javax.swing.JDialog {
 
 
         dispose();
-        
+
     }//GEN-LAST:event_jcmdOKActionPerformed
 
     private void jcmdCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jcmdCancelActionPerformed
 
         dispose();
-        
+
     }//GEN-LAST:event_jcmdCancelActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
