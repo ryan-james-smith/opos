@@ -39,7 +39,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -57,7 +56,7 @@ public class OrderPop extends Application {
   }
 
   private ExecutorService databaseExecutor;
-  private Future databaseSetupFuture;
+  private Future<?> databaseSetupFuture;
 
   @Override
   public void init() throws Exception {
@@ -221,7 +220,7 @@ public class OrderPop extends Application {
    * Check to see if we have a connection to database and
    * and pop some data in Orders table to prime if needed
    */
-  class DBSetupTask extends DBTask {
+  class DBSetupTask extends DBTask<Void> {
     @Override
     protected Void call() throws Exception {
       try (Connection con = getConnection()) {
@@ -248,7 +247,7 @@ public class OrderPop extends Application {
       return true;
     }
 
-/* 
+/*
  * We don't need to create Orders table as should already exist
  * as created by uniCenta oPOS or unicenta_remote_display apps
     private void createSchema(Connection con) throws SQLException {
@@ -259,13 +258,13 @@ public class OrderPop extends Application {
       logger.info("Created schema");
     }
 */
-    
+
 /*
  *  Useful if we want to fill the Orders table with some sample data
  *  MySQL-createSampleData.sql - INSERT x12 rows
     private void populateDatabase(Connection con) throws SQLException {
-      logger.info("Populating database");      
-      Statement st = con.createStatement();      
+      logger.info("Populating database");
+      Statement st = con.createStatement();
       for (String order: SAMPLE_ORDER_DATA) {
         st.executeUpdate("insert into orders values(1,'" + order + "')");
       }
