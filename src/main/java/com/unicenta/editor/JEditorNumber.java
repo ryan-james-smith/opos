@@ -32,7 +32,7 @@ import java.io.File;
  * @author JG uniCenta
  */
 public abstract class JEditorNumber extends JEditorAbstract {
-    
+
     // Variable numerica
     private final static int NUMBER_ZERONULL = 0;
     private final static int NUMBER_INT = 1;
@@ -42,42 +42,40 @@ public abstract class JEditorNumber extends JEditorAbstract {
     private int m_iNumberStatus;
     private String m_sNumber;
     private boolean m_bNegative;
-    
+
     private Formats m_fmt;
-    
-    private Boolean priceWith00;
-    
+
+
     /** Creates a new instance of JEditorNumber */
     public JEditorNumber() {
         m_fmt = getFormat();
-        
-// added JDL 11.05.13        
-        AppConfig m_config =  new AppConfig(new File((System.getProperty("user.home")), AppLocal.APP_ID + ".properties"));        
-        m_config.load();        
-        priceWith00 =("true".equals(m_config.getProperty("till.pricewith00")));
-        m_config=null;         
+
+// added JDL 11.05.13
+        AppConfig m_config =  new AppConfig(new File((System.getProperty("user.home")), AppLocal.APP_ID + ".properties"));
+        m_config.load();
+        m_config=null;
         reset();
     }
-    
+
     /**
      *
      * @return
      */
     protected abstract Formats getFormat();
-    
+
     /**
      *
      */
     public void reset() {
-        
+
         String sOldText = getText();
-        
+
         m_sNumber = "";
         m_bNegative = false;
         m_iNumberStatus = NUMBER_ZERONULL;
-        
+
         reprintText();
-        
+
         firePropertyChange("Text", sOldText, getText());
     }
 
@@ -86,24 +84,24 @@ public abstract class JEditorNumber extends JEditorAbstract {
      * @param dvalue
      */
     public void setDoubleValue(Double dvalue) {
-        
+
         String sOldText = getText();
-        
+
         if (dvalue == null) {
             m_sNumber = "";
             m_bNegative = false;
-            m_iNumberStatus = NUMBER_ZERONULL;                 
+            m_iNumberStatus = NUMBER_ZERONULL;
         } else if (dvalue >= 0.0) {
             m_sNumber = formatDouble(dvalue);
             m_bNegative = false;
-            m_iNumberStatus = NUMBER_ZERONULL;            
+            m_iNumberStatus = NUMBER_ZERONULL;
         } else {
             m_sNumber = formatDouble(-dvalue);
             m_bNegative = true;
-            m_iNumberStatus = NUMBER_ZERONULL;            
+            m_iNumberStatus = NUMBER_ZERONULL;
         }
         reprintText();
-        
+
         firePropertyChange("Text", sOldText, getText());
     }
 
@@ -111,13 +109,12 @@ public abstract class JEditorNumber extends JEditorAbstract {
      *
      * @return
      */
-    public Double getDoubleValue() {  
-        String text = getText();   
+    public Double getDoubleValue() {
+        String text = getText();
         if (text == null || text.equals("")) {
-            return null; 
+            return null;
         } else {
             try {
-                //return priceWith00? Double.parseDouble(text)/100 : Double.parseDouble(text);
                 return Double.parseDouble(text);
                // return  Double.parseDouble(text);
             } catch (NumberFormatException e) {
@@ -125,26 +122,26 @@ public abstract class JEditorNumber extends JEditorAbstract {
             }
         }
     }
-    
+
     /**
      *
      * @param ivalue
      */
     public void setValueInteger(int ivalue) {
-        
+
         String sOldText = getText();
-        
+
         if (ivalue >= 0) {
             m_sNumber = Integer.toString(ivalue);
             m_bNegative = false;
-            m_iNumberStatus = NUMBER_ZERONULL;            
+            m_iNumberStatus = NUMBER_ZERONULL;
         } else {
             m_sNumber = Integer.toString(-ivalue);
             m_bNegative = true;
-            m_iNumberStatus = NUMBER_ZERONULL;            
+            m_iNumberStatus = NUMBER_ZERONULL;
         }
         reprintText();
-        
+
         firePropertyChange("Text", sOldText, getText());
     }
 
@@ -153,14 +150,14 @@ public abstract class JEditorNumber extends JEditorAbstract {
      * @return
      * @throws BasicException
      */
-    public int getValueInteger() throws BasicException {  
+    public int getValueInteger() throws BasicException {
         try {
             return Integer.parseInt(getText());
         } catch (NumberFormatException e) {
             throw new BasicException(e);
         }
-    }    
-    
+    }
+
     private String formatDouble(Double value) {
         String sNumber = Double.toString(DoubleUtils.fixDecimals(value));
         if (sNumber.endsWith(".0")) {
@@ -168,7 +165,7 @@ public abstract class JEditorNumber extends JEditorAbstract {
         }
         return sNumber;
     }
-    
+
     /**
      *
      * @return
@@ -184,7 +181,7 @@ public abstract class JEditorNumber extends JEditorAbstract {
      */
     public String getText() {
         return (m_bNegative ? "-" : "") + m_sNumber;
-    }   
+    }
 
     /**
      *
@@ -194,7 +191,7 @@ public abstract class JEditorNumber extends JEditorAbstract {
     protected int getAlignment() {
         return javax.swing.SwingConstants.RIGHT;
     }
-    
+
     /**
      *
      * @return
@@ -203,7 +200,7 @@ public abstract class JEditorNumber extends JEditorAbstract {
     protected String getTextEdit() {
         return getText();
     }
-    
+
     /**
      *
      * @return
@@ -213,7 +210,7 @@ public abstract class JEditorNumber extends JEditorAbstract {
     protected String getTextFormat() throws BasicException {
         return m_fmt.formatValue(getDoubleValue());
     }
-    
+
     /**
      *
      * @param cTrans
@@ -222,14 +219,14 @@ public abstract class JEditorNumber extends JEditorAbstract {
     protected void typeCharInternal(char cTrans) {
         transChar(cTrans);
     }
-    
+
     /**
      *
      * @param cTrans
      */
     @Override
     protected void transCharInternal(char cTrans) {
-        
+
         String sOldText = getText();
 
         if (cTrans == '\u007f') {
@@ -244,7 +241,6 @@ public abstract class JEditorNumber extends JEditorAbstract {
         && (m_iNumberStatus == NUMBER_ZERONULL)) {
             m_iNumberStatus = NUMBER_INT;
             m_sNumber = Character.toString(cTrans);
-//       } else if (cTrans == DEC_SEP &&  m_iNumberStatus == NUMBER_ZERONULL && !priceWith00) {
         } else if (cTrans == DEC_SEP &&  m_iNumberStatus == NUMBER_ZERONULL) {
             m_iNumberStatus = NUMBER_DEC;
             m_sNumber = "0"+DEC_SEP;
@@ -256,7 +252,6 @@ public abstract class JEditorNumber extends JEditorAbstract {
         && (m_iNumberStatus == NUMBER_INT)) {
             //m_iNumberStatus = NUMBER_INT;
             m_sNumber += cTrans;
-//         } else if (cTrans == DEC_SEP &&  m_iNumberStatus == NUMBER_INT && !priceWith00) {
         } else if (cTrans == DEC_SEP &&  m_iNumberStatus == NUMBER_INT) {
             m_iNumberStatus = NUMBER_DEC;
             m_sNumber += DEC_SEP;
@@ -269,18 +264,9 @@ public abstract class JEditorNumber extends JEditorAbstract {
             m_sNumber += cTrans;
 
         } else {
-            Toolkit.getDefaultToolkit().beep(); 
-        }       
-        
+            Toolkit.getDefaultToolkit().beep();
+        }
+
         firePropertyChange("Text", sOldText, getText());
-    } 
- 
-    
- /* Added JDL 13.04.13 routine
- * routine to set the amount appearance to show '.'
- */ 
-    private String setTempjPrice(String jPrice){
-        jPrice = jPrice.replace(".","");
-        return (jPrice.length()<= 2)? jPrice : (new StringBuffer(jPrice).insert(jPrice.length()-2,".").toString());
     }
 }
