@@ -19,7 +19,6 @@ package com.unicenta.pos.util;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
@@ -36,8 +35,6 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-import com.sun.javafx.application.PlatformImpl;
-
 /**
  * SwingFXWebView
  */
@@ -48,77 +45,51 @@ public class FXWeb extends JPanel
     private JFXPanel  jfxPanel;
     private JButton   swingButton;
     private WebEngine webEngine;
-    private Object    geo;
 
     public FXWeb()
     {
-        this.initComponents();
+        initComponents();
     }
 
-    public static void main(final String... args)
-    {
-        // Run this later:
-        SwingUtilities.invokeLater(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                final JFrame frame = new JFrame();
-                frame.getContentPane().add(new FXWeb());
-                frame.setMinimumSize(new Dimension(640, 480));
-                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                frame.setVisible(true);
-            }
+   public static void main(String... args) {
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame();
+            frame.getContentPane().add(new FXWeb());
+            frame.setMinimumSize(new Dimension(640, 480));
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setVisible(true);
         });
     }
 
-    private void initComponents()
-    {
-        this.jfxPanel = new JFXPanel();
-        this.createScene();
-        this.setLayout(new BorderLayout());
-        this.add(this.jfxPanel, BorderLayout.CENTER);
-        this.swingButton = new JButton();
-        this.swingButton.addActionListener(new ActionListener()
-        {
-
-            @Override
-            public void actionPerformed(final ActionEvent e)
-            {
-                Platform.runLater(new Runnable()
-                {
-
-                    @Override
-                    public void run()
-                    {
-                        FXWeb.this.webEngine.reload();
-                    }
-                });
-            }
-        });
-        this.swingButton.setText("Reload");
-        this.add(this.swingButton, BorderLayout.SOUTH);
+    private void initComponents() {
+        jfxPanel = new JFXPanel();
+        createScene();
+        setLayout(new BorderLayout());
+        add(jfxPanel, BorderLayout.CENTER);
+        swingButton = new JButton();
+        swingButton.addActionListener((ActionEvent e) -> Platform.runLater(() -> webEngine.reload()));
+        swingButton.setText("Reload");
+        add(swingButton, BorderLayout.SOUTH);
     }
 
     /**
      * createScene Note: Key is that Scene needs to be created and run on
      * "FX user thread" NOT on the AWT-EventQueue Thread
      */
-    private void createScene()
-    {
-        PlatformImpl.startup(() -> {
-            FXWeb.this.stage = new Stage();
-            FXWeb.this.stage.setTitle("Hello Java FX");
-            FXWeb.this.stage.setResizable(true);
-            final Group root = new Group();
-            final Scene scene = new Scene(root, 80, 20);
-            FXWeb.this.stage.setScene(scene);
-            FXWeb.this.browser = new WebView();
-            FXWeb.this.webEngine = FXWeb.this.browser.getEngine();
-            FXWeb.this.webEngine.load("https://unicenta.com/pages/configure-unicenta-opos/");
-            final ObservableList<Node> children = root.getChildren();
-            children.add(FXWeb.this.browser);
-            FXWeb.this.jfxPanel.setScene(scene);
+    private void createScene() {
+        Platform.startup(() -> {
+            stage = new Stage();
+            stage.setTitle("Hello Java FX");
+            stage.setResizable(true);
+            Group root = new Group();
+            Scene scene = new Scene(root, 80, 20);
+            stage.setScene(scene);
+            browser = new WebView();
+            webEngine = browser.getEngine();
+            webEngine.load("https://unicenta.com/pages/configure-unicenta-opos/");
+            ObservableList<Node> children = root.getChildren();
+            children.add(browser);
+            jfxPanel.setScene(scene);
         });
     }
 }
