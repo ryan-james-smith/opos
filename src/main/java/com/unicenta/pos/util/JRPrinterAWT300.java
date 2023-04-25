@@ -5,21 +5,21 @@
  *
  * JasperReports - Free Java report-generating library.
  * Copyright (c) 2001-2006 JasperSoft Corporation http://www.jaspersoft.com
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
- * 
+ *
  * JasperSoft Corporation
  * 303 Second Street, Suite 450 North
  * San Francisco, CA 94107
@@ -40,21 +40,22 @@
 package com.unicenta.pos.util;
 
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.print.*;
 import javax.print.PrintService;
 import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JRExporterParameter;
+import net.sf.jasperreports.export.ExporterInput;
+import net.sf.jasperreports.export.SimpleExporterInput;
+import net.sf.jasperreports.export.SimpleGraphics2DExporterOutput;
+import net.sf.jasperreports.export.SimpleGraphics2DReportConfiguration;
 import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.export.*;
 import net.sf.jasperreports.engine.export.JRGraphics2DExporter;
-import net.sf.jasperreports.engine.export.JRGraphics2DExporterParameter;
 import net.sf.jasperreports.engine.util.JRGraphEnvInitializer;
-import org.apache.poi.hssf.usermodel.*;
 
-        
+
 /**
  * @author Teodor Danciu (teodord@users.sourceforge.net)
  * @version $Id: JRPrinterAWT.java 2123 2008-03-12 11:00:41Z teodord $
@@ -80,7 +81,7 @@ public class JRPrinterAWT300 implements Printable
 	protected JRPrinterAWT300(JasperPrint jrPrint) throws JRException
 	{
 		JRGraphEnvInitializer.initializeGraphEnv();
-		
+
 		jasperPrint = jrPrint;
 	}
 
@@ -91,8 +92,8 @@ public class JRPrinterAWT300 implements Printable
      * @param firstPageIndex
      * @param lastPageIndex
      * @param service
-     * @return 
-     * @return 
+     * @return
+     * @return
      * @throws JRException
 	 */
 	public static boolean printPages(
@@ -104,8 +105,8 @@ public class JRPrinterAWT300 implements Printable
 	{
 		JRPrinterAWT300 printer = new JRPrinterAWT300(jrPrint);
 		return printer.printPages(
-			firstPageIndex, 
-			lastPageIndex, 
+			firstPageIndex,
+			lastPageIndex,
 			service
 			);
 	}
@@ -116,8 +117,8 @@ public class JRPrinterAWT300 implements Printable
      * @param jrPrint
      * @param pageIndex
      * @param zoom
-     * @return 
-     * @throws JRException 
+     * @return
+     * @throws JRException
 	 */
 	public static Image printPageToImage(
 		JasperPrint jrPrint,
@@ -135,7 +136,7 @@ public class JRPrinterAWT300 implements Printable
 	 */
 	private boolean printPages(
 		int firstPageIndex,
-		int lastPageIndex, 
+		int lastPageIndex,
                 PrintService service
 		) throws JRException
 	{
@@ -161,12 +162,12 @@ public class JRPrinterAWT300 implements Printable
 
 		// fix for bug ID 6255588 from Sun bug database
 		initPrinterJobFields(printJob);
-		
+
 		PageFormat pageFormat = printJob.defaultPage();
 		Paper paper = pageFormat.getPaper();
 
 		printJob.setJobName("uniCentaReport - " + jasperPrint.getName());
-		
+
 		switch (jasperPrint.getOrientationValue())
 		{
 			case LANDSCAPE :
@@ -224,58 +225,65 @@ public class JRPrinterAWT300 implements Printable
 	 *
 	 */
     @Override
-	public int print(Graphics graphics, PageFormat pageFormat, int pageIndex) throws PrinterException
-	{
-		if (Thread.currentThread().isInterrupted())
-		{
-			throw new PrinterException("Current thread interrupted.");
-		}
+	    public int print(Graphics graphics, PageFormat pageFormat, int pageIndex) throws PrinterException {
+    pageIndex += pageOffset;
 
-		pageIndex += pageOffset;
+    if (pageIndex < 0 || pageIndex >= jasperPrint.getPages().size()) {
+        return Printable.NO_SUCH_PAGE;
+    }
 
-		if ( pageIndex < 0 || pageIndex >= jasperPrint.getPages().size() )
-		{
-			return Printable.NO_SUCH_PAGE;
-		}
+    try {
+         JRGraphics2DExporter exporter = new JRGraphics2DExporter();
+        ExporterInput input = new SimpleExporterInput(this.jasperPrint);
+        SimpleGraphics2DExporterOutput output = new SimpleGraphics2DExporterOutput();
+        SimpleGraphics2DReportConfiguration configuration = new SimpleGraphics2DReportConfiguration();
 
-		try
-		{
-			JRGraphics2DExporter exporter = new JRGraphics2DExporter();
-			exporter.setParameter(JRExporterParameter.JASPER_PRINT, this.jasperPrint);                       
-			exporter.setParameter(JRGraphics2DExporterParameter.GRAPHICS_2D, graphics);
-			exporter.setParameter(JRExporterParameter.PAGE_INDEX, new Integer(pageIndex));
-                        exporter.exportReport();
-		}
-		catch (JRException e)
-		{
-			throw new PrinterException(e.getMessage());
-		}
+        exporter.setExporterInput(input);
+        exporter.setExporterOutput(output);
+        exporter.setConfiguration(configuration);
 
-		return Printable.PAGE_EXISTS;
-	}
+        output.setGraphics2D((Graphics2D) graphics);
+        configuration.setOffsetX(0);
+        configuration.setOffsetY(-pageIndex * jasperPrint.getPageHeight());
+        configuration.setZoomRatio(1f);
+
+        exporter.exportReport();
+    } catch (JRException e) {
+        throw new PrinterException(e.getMessage());
+    }
+
+    return Printable.PAGE_EXISTS;
+}
 
 
 	/**
 	 *
 	 */
-	private Image printPageToImage(int pageIndex, float zoom) throws JRException
-	{
-		Image pageImage = new BufferedImage(
-			(int)(jasperPrint.getPageWidth() * zoom) + 1,
-			(int)(jasperPrint.getPageHeight() * zoom) + 1,
-			BufferedImage.TYPE_INT_RGB
-			);
+	private Image printPageToImage(int pageIndex, float zoom) throws JRException {
+        Image pageImage = new BufferedImage(
+            (int)(jasperPrint.getPageWidth() * zoom) + 1,
+            (int)(jasperPrint.getPageHeight() * zoom) + 1,
+            BufferedImage.TYPE_INT_RGB
+        );
 
-		JRGraphics2DExporter exporter = new JRGraphics2DExporter();
-		exporter.setParameter(JRExporterParameter.JASPER_PRINT, this.jasperPrint);
-		exporter.setParameter(JRGraphics2DExporterParameter.GRAPHICS_2D, pageImage.getGraphics());
-		exporter.setParameter(JRExporterParameter.PAGE_INDEX, new Integer(pageIndex));
-		exporter.setParameter(JRGraphics2DExporterParameter.ZOOM_RATIO, new Float(zoom));
-                
-		exporter.exportReport();
+         JRGraphics2DExporter exporter = new JRGraphics2DExporter();
+        ExporterInput input = new SimpleExporterInput(this.jasperPrint);
+        SimpleGraphics2DExporterOutput output = new SimpleGraphics2DExporterOutput();
+        SimpleGraphics2DReportConfiguration configuration = new SimpleGraphics2DReportConfiguration();
 
-		return pageImage;
-	}
+        exporter.setExporterInput(input);
+        exporter.setExporterOutput(output);
+        exporter.setConfiguration(configuration);
+
+        output.setGraphics2D((Graphics2D) pageImage.getGraphics());
+        configuration.setOffsetX(pageIndex * jasperPrint.getPageWidth());
+        configuration.setOffsetY(0);
+        configuration.setZoomRatio(zoom);
+
+        exporter.exportReport();
+
+        return pageImage;
+    }
 
 
 	/**
