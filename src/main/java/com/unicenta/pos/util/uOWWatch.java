@@ -49,8 +49,10 @@ package com.unicenta.pos.util;
 
 import com.dalsemi.onewire.OneWireAccessProvider;
 import com.dalsemi.onewire.adapter.DSPortAdapter;
-import com.dalsemi.onewire.container.OneWireContainer;
-import com.dalsemi.onewire.application.monitor.*;
+import com.dalsemi.onewire.application.monitor.DeviceMonitor;
+import com.dalsemi.onewire.application.monitor.DeviceMonitorEvent;
+import com.dalsemi.onewire.application.monitor.DeviceMonitorEventListener;
+import com.dalsemi.onewire.application.monitor.DeviceMonitorException;
 
 
 /**
@@ -62,26 +64,23 @@ public class uOWWatch
     implements DeviceMonitorEventListener {
 
     public static String ibuttonid;
-   
+    private static uOWWatch instance;
+
     /**
      * Method main
     */
-    public static void iButtonOn () {
-        OneWireContainer owd;
-
-        try {
-            DSPortAdapter adapter = OneWireAccessProvider.getDefaultAdapter();
-
-            adapter.setSearchAllDevices();
-            adapter.targetAllFamilies();
-            adapter.setSpeed(DSPortAdapter.SPEED_REGULAR);
-
-            uOWWatch nw = new uOWWatch(adapter);
-        } catch (Exception e) {
-
+    public static void iButtonOn() {
+        if (instance == null) {
+            try {
+                DSPortAdapter adapter = OneWireAccessProvider.getDefaultAdapter();
+                adapter.setSearchAllDevices();
+                adapter.targetAllFamilies();
+                adapter.setSpeed(DSPortAdapter.SPEED_REGULAR);
+                instance = new uOWWatch(adapter);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-
-        return;
     }
 
    /** Network Monitor instance */
@@ -94,13 +93,9 @@ public class uOWWatch
     public uOWWatch (DSPortAdapter adapter) {
 
         dm = new DeviceMonitor(adapter);
-
-        try {
-            dm.addDeviceMonitorEventListener(this);
-        } catch (Exception e){ }
-
-        Thread t = new Thread(dm);
-        t.start();
+dm.addDeviceMonitorEventListener(this);
+Thread t = new Thread(dm);
+t.start();
     }
 
     /**
@@ -117,10 +112,10 @@ public class uOWWatch
    @Override
     public void deviceArrival (DeviceMonitorEvent devt) {
         int i;
-        
+
         for(i=0; i<devt.getDeviceCount(); i++) {
             ibuttonid = devt.getAddressAsStringAt(i);
-        }        
+        }
     }
 
     /**
@@ -130,7 +125,7 @@ public class uOWWatch
     @Override
     public void deviceDeparture (DeviceMonitorEvent devt) {
         int i;
-        
+
         for(i=0; i<devt.getDeviceCount(); i++)
             ibuttonid = "";
     }
@@ -141,11 +136,11 @@ public class uOWWatch
     */
    @Override
    public void networkException (DeviceMonitorException dexc) {
-
+        dexc.printStackTrace();
     }
-   
+
     public static String getibuttonid (){
        return ibuttonid;
-    }   
-  
+    }
+
 }
