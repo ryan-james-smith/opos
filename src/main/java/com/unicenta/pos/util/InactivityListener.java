@@ -34,7 +34,6 @@ public class InactivityListener implements ActionListener, AWTEventListener {
      */
     public final static long USER_EVENTS = KEY_EVENTS + MOUSE_EVENTS;
     private Action action;
-    private int interval;
     private long eventMask;
     private Timer timer = new Timer(0, this);
 
@@ -47,7 +46,7 @@ public class InactivityListener implements ActionListener, AWTEventListener {
     public InactivityListener(Action action, int seconds) {
         this.action = action;
         this.eventMask =USER_EVENTS;
-        timer.setInitialDelay(seconds);                
+        timer.setInitialDelay(seconds);
     }
 
     /**
@@ -83,7 +82,7 @@ public class InactivityListener implements ActionListener, AWTEventListener {
      *
      */
     public void restart(){
-        timer.restart();            
+        timer.restart();
     }
 
     /**
@@ -91,6 +90,6 @@ public class InactivityListener implements ActionListener, AWTEventListener {
      */
     public void setRunning() {
         if (!timer.isRunning())
-            timer.restart(); 
+            timer.restart();
     }
 }
