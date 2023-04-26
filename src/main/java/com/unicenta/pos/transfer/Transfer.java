@@ -74,8 +74,6 @@ public final class Transfer extends JPanel implements JPanelView {
   private PreparedStatement pstmt;
   private String SQL;
 
-  private String source_version;
-
   private String ticketsnum;
   private String ticketsnumRefund;
   private String ticketsnumPayment;
@@ -92,7 +90,6 @@ public final class Transfer extends JPanel implements JPanelView {
   private Session s;
   private Connection con;
   private Session session;
-  private boolean m_bInTransaction;
 
   String db_url = null;
   String db_schema = null;
@@ -471,7 +468,7 @@ public final class Transfer extends JPanel implements JPanelView {
       stmt.addBatch("SET unique_checks=0;");
       stmt.addBatch("SET foreign_key_checks=0;");
 
-      int[] updateCounts = stmt.executeBatch();
+      stmt.executeBatch();
       this.con_target.commit();
 
     } catch (BatchUpdateException b) {
