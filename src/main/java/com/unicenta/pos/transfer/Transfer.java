@@ -196,7 +196,7 @@ public final class Transfer extends JPanel implements JPanelView {
               });
       DriverManager.registerDriver(
               new DriverWrapper((Driver) Class.forName(jtxtDbDriver.getText(),
-                      true, cloader).newInstance()));
+                      true, cloader).getDeclaredConstructor().newInstance()));
       con_source = (Connection) DriverManager.getConnection(
               db_url2, db_user2, db_password2);
 
@@ -208,18 +208,30 @@ public final class Transfer extends JPanel implements JPanelView {
 
       return (true);
 
-    } catch (ClassNotFoundException
-            | MalformedURLException
-            | InstantiationException
-            | IllegalAccessException
-            | SQLException e) {
-
-      JMessageDialog.showMessage(this,
+    } catch (InstantiationException
+              | IllegalAccessException
+              | MalformedURLException
+              | ClassNotFoundException e) {
+        JMessageDialog.showMessage(this,
               new MessageInf(MessageInf.SGN_DANGER,
                       AppLocal.getIntString("database.UnableToConnect"),
                       e));
-      return (false);
-    }
+                        return (false);
+
+      } catch (SQLException e) {
+        JMessageDialog.showMessage(this,
+              new MessageInf(MessageInf.SGN_DANGER,
+                      AppLocal.getIntString("database.UnableToConnect"),
+                      e));
+                        return (false);
+
+      } catch (Exception e) {
+        JMessageDialog.showMessage(this,
+              new MessageInf(MessageInf.SGN_DANGER,
+                      AppLocal.getIntString("database.UnableToConnect"),
+                      e));
+                return (false);
+      }
 
   }
 
@@ -229,7 +241,7 @@ public final class Transfer extends JPanel implements JPanelView {
    */
   @SuppressWarnings("empty-statement")
   public Boolean createTargetDB() {
-// Transfer is into current MySQL database in unicentaopos.properties 
+// Transfer is into current MySQL database in unicentaopos.properties
 
     targetCreate = "/com/unicenta/pos/scripts/" + sDB_target + "-create-transfer.sql";
     targetFKadd = "/com/unicenta/pos/scripts/MySQL-FKeys.sql";
@@ -920,7 +932,7 @@ public final class Transfer extends JPanel implements JPanelView {
           }
           rs.close();
 
-// introduced in 3.70                    
+// introduced in 3.70
           if (Dbtversion >= 3.70) {
             Dbtname = "lineremoved";
             rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
@@ -1884,7 +1896,7 @@ public final class Transfer extends JPanel implements JPanelView {
           } else {
             txtOut.append("Ticket Number... skipped" + "\n");
           }
-// deliberately verbose chunk so can see diff's between PostgreSQL v9 & v10                    
+// deliberately verbose chunk so can see diff's between PostgreSQL v9 & v10
           if (Dbtversion >= 3.50 && jtxtDbType.getText().equals("jdbc:postgresql://")) {
             Dbtname = "ticketsnum";
             rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
@@ -1925,7 +1937,7 @@ public final class Transfer extends JPanel implements JPanelView {
           } else {
             txtOut.append("Ticket Payment... skipped" + "\n");
           }
-// deliberately verbose chunk so can see diff's between PostgreSQL v9 & v10 sequence                 
+// deliberately verbose chunk so can see diff's between PostgreSQL v9 & v10 sequence
           if (Dbtversion >= 3.50 && jtxtDbType.getText().equals("jdbc:postgresql://")) {
             Dbtname = "ticketsnum_payment";
             rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
@@ -2049,7 +2061,7 @@ public final class Transfer extends JPanel implements JPanelView {
             log.error(ex.getMessage());
           }
 
-// Add ForeignKeys                   
+// Add ForeignKeys
           JOptionPane.showMessageDialog(this
                   , AppLocal.getIntString("message.transfercomplete")
                   , AppLocal.getIntString("message.transfermessage")
@@ -2116,7 +2128,7 @@ public final class Transfer extends JPanel implements JPanelView {
 
       DriverManager.registerDriver(
               new DriverWrapper((Driver)
-                      Class.forName(driver, true, cloader).newInstance()));
+                      Class.forName(driver, true, cloader).getDeclaredConstructor().newInstance()));
 
       Session session1 = new Session(url, user, password);
 
@@ -2137,10 +2149,22 @@ public final class Transfer extends JPanel implements JPanelView {
 
       jCBSchema.setEnabled(true);
       jCBSchema.setSelectedIndex(0);
-    } catch (MalformedURLException | ClassNotFoundException | SQLException
-            | InstantiationException | IllegalAccessException ex) {
-      log.error(ex.getMessage());
-    }
+    } catch
+    (InstantiationException
+              | ClassNotFoundException
+              | MalformedURLException
+              | IllegalAccessException ex) {
+        log.error(ex.getMessage());
+
+      } catch (SQLException e) {
+        JMessageDialog.showMessage(this,
+                new MessageInf(MessageInf.SGN_WARNING,
+                        AppLocal.getIntString("message.databaseconnectionerror"), e));
+
+      } catch (Exception e) {
+        JMessageDialog.showMessage(this,
+                new MessageInf(MessageInf.SGN_WARNING, "Unknown exception", e));
+      }
   }
 
   public void reset() {
@@ -2769,7 +2793,7 @@ public final class Transfer extends JPanel implements JPanelView {
 
         DriverManager.registerDriver(
                 new DriverWrapper((Driver)
-                        Class.forName(driver, true, cloader).newInstance()));
+                        Class.forName(driver, true, cloader).getDeclaredConstructor().newInstance()));
 
         Session session_source = new Session(url, user, password);
         Connection connection = session_source.getConnection();
@@ -2897,9 +2921,7 @@ public final class Transfer extends JPanel implements JPanelView {
               new File(driverlib).toURI().toURL()
       });
 
-      DriverManager.registerDriver(
-              new DriverWrapper((Driver)
-                      Class.forName(driver, true, cloader).newInstance()));
+      DriverManager.registerDriver(new DriverWrapper((Driver) Class.forName(driver, true, cloader).getDeclaredConstructor().newInstance()));
 
       Session session_source1 = new Session(url, user, password);
       Connection connection = session_source1.getConnection();
