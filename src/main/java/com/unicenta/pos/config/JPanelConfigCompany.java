@@ -23,14 +23,13 @@ import com.unicenta.data.user.DirtyManager;
 import com.unicenta.pos.forms.AppConfig;
 import com.unicenta.pos.forms.AppLocal;
 import java.awt.Component;
-import javax.swing.ImageIcon;
 
 /**
  *
  * @author JG uniCenta
  */
 public class JPanelConfigCompany extends javax.swing.JPanel implements PanelConfig {
-    
+
     private final DirtyManager dirty = new DirtyManager();
 
 
@@ -38,9 +37,9 @@ public class JPanelConfigCompany extends javax.swing.JPanel implements PanelConf
      *
      */
     public JPanelConfigCompany() {
-        
+
         initComponents();
-                          
+
         jtxtTktHeader1.getDocument().addDocumentListener(dirty);
         jtxtTktHeader2.getDocument().addDocumentListener(dirty);
         jtxtTktHeader3.getDocument().addDocumentListener(dirty);
@@ -54,12 +53,12 @@ public class JPanelConfigCompany extends javax.swing.JPanel implements PanelConf
         jtxtTktFooter4.getDocument().addDocumentListener(dirty);
         jtxtTktFooter5.getDocument().addDocumentListener(dirty);
         jtxtTktFooter6.getDocument().addDocumentListener(dirty);
-        
+
 // JG - For future
         lblLogo.setVisible(false);
         jLbllogoPath.setVisible(false);
         webSwtch_Logo.setVisible(false);
-        
+
     }
 
     /**
@@ -70,7 +69,7 @@ public class JPanelConfigCompany extends javax.swing.JPanel implements PanelConf
     public boolean hasChanged() {
         return dirty.isDirty();
     }
-    
+
     /**
      *
      * @return
@@ -79,7 +78,7 @@ public class JPanelConfigCompany extends javax.swing.JPanel implements PanelConf
     public Component getConfigComponent() {
         return this;
     }
-   
+
     /**
      *
      * @param config
@@ -89,52 +88,52 @@ public class JPanelConfigCompany extends javax.swing.JPanel implements PanelConf
 
         jtxtTktHeader1.setText(config.getProperty("tkt.header1"));
         jtxtTktHeader2.setText(config.getProperty("tkt.header2"));
-        jtxtTktHeader3.setText(config.getProperty("tkt.header3"));  
-        jtxtTktHeader4.setText(config.getProperty("tkt.header4"));  
-        jtxtTktHeader5.setText(config.getProperty("tkt.header5"));  
-        jtxtTktHeader6.setText(config.getProperty("tkt.header6"));  
-        
+        jtxtTktHeader3.setText(config.getProperty("tkt.header3"));
+        jtxtTktHeader4.setText(config.getProperty("tkt.header4"));
+        jtxtTktHeader5.setText(config.getProperty("tkt.header5"));
+        jtxtTktHeader6.setText(config.getProperty("tkt.header6"));
+
         jtxtTktFooter1.setText(config.getProperty("tkt.footer1"));
         jtxtTktFooter2.setText(config.getProperty("tkt.footer2"));
-        jtxtTktFooter3.setText(config.getProperty("tkt.footer3"));  
-        jtxtTktFooter4.setText(config.getProperty("tkt.footer4"));  
-        jtxtTktFooter5.setText(config.getProperty("tkt.footer5"));  
-        jtxtTktFooter6.setText(config.getProperty("tkt.footer6"));  
+        jtxtTktFooter3.setText(config.getProperty("tkt.footer3"));
+        jtxtTktFooter4.setText(config.getProperty("tkt.footer4"));
+        jtxtTktFooter5.setText(config.getProperty("tkt.footer5"));
+        jtxtTktFooter6.setText(config.getProperty("tkt.footer6"));
 
 /** JG - here for future per terminal
         jLbllogoPath.setText(config.getProperty("tkt.logopath"));
-        ImageIcon image = new ImageIcon(jLbllogoPath.getText());        
-        jLogo.setIcon(image);        
-*/        
-        dirty.setDirty(false);        
+        ImageIcon image = new ImageIcon(jLbllogoPath.getText());
+        jLogo.setIcon(image);
+*/
+        dirty.setDirty(false);
     }
-   
+
     /**
      *
      * @param config
      */
     @Override
     public void saveProperties(AppConfig config) {
-        
+
         config.setProperty("tkt.header1", jtxtTktHeader1.getText());
-        config.setProperty("tkt.header2", jtxtTktHeader2.getText()); 
-        config.setProperty("tkt.header3", jtxtTktHeader3.getText()); 
-        config.setProperty("tkt.header4", jtxtTktHeader4.getText()); 
-        config.setProperty("tkt.header5", jtxtTktHeader5.getText()); 
-        config.setProperty("tkt.header6", jtxtTktHeader6.getText()); 
-        
+        config.setProperty("tkt.header2", jtxtTktHeader2.getText());
+        config.setProperty("tkt.header3", jtxtTktHeader3.getText());
+        config.setProperty("tkt.header4", jtxtTktHeader4.getText());
+        config.setProperty("tkt.header5", jtxtTktHeader5.getText());
+        config.setProperty("tkt.header6", jtxtTktHeader6.getText());
+
         config.setProperty("tkt.footer1", jtxtTktFooter1.getText());
-        config.setProperty("tkt.footer2", jtxtTktFooter2.getText()); 
-        config.setProperty("tkt.footer3", jtxtTktFooter3.getText()); 
-        config.setProperty("tkt.footer4", jtxtTktFooter4.getText()); 
-        config.setProperty("tkt.footer5", jtxtTktFooter5.getText()); 
-        config.setProperty("tkt.footer6", jtxtTktFooter6.getText());          
+        config.setProperty("tkt.footer2", jtxtTktFooter2.getText());
+        config.setProperty("tkt.footer3", jtxtTktFooter3.getText());
+        config.setProperty("tkt.footer4", jtxtTktFooter4.getText());
+        config.setProperty("tkt.footer5", jtxtTktFooter5.getText());
+        config.setProperty("tkt.footer6", jtxtTktFooter6.getText());
 
         config.setProperty("tkt.logopath", jLbllogoPath.getText());
-        
+
         dirty.setDirty(false);
     }
-    
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -398,8 +397,8 @@ public class JPanelConfigCompany extends javax.swing.JPanel implements PanelConf
         }
 
     }//GEN-LAST:event_webSwtch_LogoActionPerformed
-    
-    
+
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLbllogoPath;
     private javax.swing.JLabel jLogo;
@@ -421,5 +420,5 @@ public class JPanelConfigCompany extends javax.swing.JPanel implements PanelConf
     private javax.swing.JLabel lblTktHeader1;
     private com.alee.extended.button.WebSwitch webSwtch_Logo;
     // End of variables declaration//GEN-END:variables
-    
+
 }
