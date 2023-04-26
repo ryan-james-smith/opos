@@ -4,13 +4,10 @@ package com.unicenta.pos.ticket;
 import com.unicenta.basic.BasicException;
 import com.unicenta.data.loader.DataRead;
 import com.unicenta.data.loader.IKeyed;
-import com.unicenta.data.loader.ImageUtils;
 import com.unicenta.data.loader.SerializerRead;
-import java.awt.image.*;
 
 public class CardInfo implements IKeyed {
 
-    private static final long serialVersionUID = 1612339444103L;
     private String m_sID;
     private String m_sCardName;
     private double m_Charges;
