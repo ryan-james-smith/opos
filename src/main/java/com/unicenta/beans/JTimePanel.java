@@ -260,18 +260,6 @@ public class JTimePanel extends javax.swing.JPanel {
 
         public Date DateInf;
 
-        public JButtonDate(ActionListener datehandler) {
-            super();
-            initComponent();
-            addActionListener(datehandler);
-        }
-
-        public JButtonDate(String sText, ActionListener datehandler) {
-            super(sText);
-            initComponent();
-            addActionListener(datehandler);
-        }
-
         public JButtonDate(String sText, Icon ico, ActionListener datehandler) {
             super(sText, ico);
             initComponent();
