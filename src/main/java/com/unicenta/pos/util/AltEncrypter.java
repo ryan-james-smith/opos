@@ -17,67 +17,80 @@
 //    You should have received a copy of the GNU General Public License
 //    along with uniCenta oPOS.  If not, see <http://www.gnu.org/licenses/>.
 
+
+//DES is a terrible/broken choice for an algorithm, this is rewritten using AES, it has likely not been tested and WILL NOT WORK on anything that had already been created using DES.
+
 package com.unicenta.pos.util;
 
-import java.io.UnsupportedEncodingException;
-import java.security.*;
-import javax.crypto.*;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import java.io.IOException;
 
-/**
- *
- * @author JG uniCenta
- */
 public class AltEncrypter {
-    
+
     private Cipher cipherDecrypt;
     private Cipher cipherEncrypt;
-    
-    /** Creates a new instance of Encrypter
-     * @param passPhrase */
+
     public AltEncrypter(String passPhrase) {
-
         try {
-            SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
-            sr.setSeed(passPhrase.getBytes("UTF8"));
-            KeyGenerator kGen = KeyGenerator.getInstance("DESEDE");
-            kGen.init(168, sr);
-            Key key = kGen.generateKey();
+            SecureRandom sr = SecureRandom.getInstanceStrong();
+            sr.setSeed(passPhrase.getBytes(StandardCharsets.UTF_8));
+            KeyGenerator kGen = KeyGenerator.getInstance("AES");
+            kGen.init(256, sr);
+            SecretKey key = kGen.generateKey();
 
-            cipherEncrypt = Cipher.getInstance("DESEDE/ECB/PKCS5Padding");
-            cipherEncrypt.init(Cipher.ENCRYPT_MODE, key);
-            
-            cipherDecrypt = Cipher.getInstance("DESEDE/ECB/PKCS5Padding");
-            cipherDecrypt.init(Cipher.DECRYPT_MODE, key);
-        } catch (UnsupportedEncodingException | NoSuchPaddingException 
-                | NoSuchAlgorithmException | InvalidKeyException e) {
+            cipherEncrypt = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            byte[] ivBytes = new byte[cipherEncrypt.getBlockSize()];
+            sr.nextBytes(ivBytes);
+            IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
+            cipherEncrypt.init(Cipher.ENCRYPT_MODE, key, ivSpec);
+
+            cipherDecrypt = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipherDecrypt.init(Cipher.DECRYPT_MODE, key, ivSpec);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e) {
+            throw new RuntimeException(e);
         }
     }
-    
-    /**
-     *
-     * @param str
-     * @return
-     */
+
     public String encrypt(String str) {
         try {
-            return StringUtils.byte2hex(cipherEncrypt.doFinal(str.getBytes("UTF8")));
-        } catch (UnsupportedEncodingException | BadPaddingException 
-                | IllegalBlockSizeException e) {
+            byte[] encryptedBytes = cipherEncrypt.doFinal(str.getBytes(StandardCharsets.UTF_8));
+            byte[] ivBytes = cipherEncrypt.getIV();
+            byte[] resultBytes = new byte[ivBytes.length + encryptedBytes.length];
+            System.arraycopy(ivBytes, 0, resultBytes, 0, ivBytes.length);
+            System.arraycopy(encryptedBytes, 0, resultBytes, ivBytes.length, encryptedBytes.length);
+            return StringUtils.byte2hex(resultBytes);
+        } catch (BadPaddingException | IllegalBlockSizeException e) {
+            throw new RuntimeException(e);
         }
-        return null;
     }
-    
-    /**
-     *
-     * @param str
-     * @return
-     */
-    public String decrypt(String str) {
-        try {
-            return new String(cipherDecrypt.doFinal(StringUtils.hex2byte(str)), "UTF8");
-        } catch (UnsupportedEncodingException | BadPaddingException | IllegalBlockSizeException e) {
-       
-        }
-        return null;
-    }    
+
+public String decrypt(String str) throws IOException {
+    try {
+        byte[] resultBytes = StringUtils.hex2byte(str);
+        byte[] ivBytes = new byte[cipherDecrypt.getBlockSize()];
+        System.arraycopy(resultBytes, 0, ivBytes, 0, ivBytes.length);
+        byte[] encryptedBytes = new byte[resultBytes.length - ivBytes.length];
+        System.arraycopy(resultBytes, ivBytes.length, encryptedBytes, 0, encryptedBytes.length);
+        IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
+        byte[] keyBytes = cipherDecrypt.getParameters().getEncoded();
+        SecretKey key = new SecretKeySpec(keyBytes, "AES");
+        cipherDecrypt.init(Cipher.DECRYPT_MODE, key, ivSpec);
+        byte[] decryptedBytes = cipherDecrypt.doFinal(encryptedBytes);
+        return new String(decryptedBytes, StandardCharsets.UTF_8);
+    } catch (BadPaddingException | IllegalBlockSizeException | InvalidKeyException | InvalidAlgorithmParameterException e) {
+        throw new RuntimeException(e);
+    }
+}
 }
