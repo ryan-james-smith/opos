@@ -1082,27 +1082,30 @@ private Properties readDbProperties(AppProperties props, String dbName) {
           }
 // deliberately verbose chunk so can see diff's between PostgreSQL v9 & v10 sequence
           if (Dbtversion >= 3.50 && jtxtDbType.getText().equals("jdbc:postgresql://")) {
-            Dbtname = "pickup_number";
-            rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
-            txtOut.append("Pickup Number" + "\n");
-            SQL = "SELECT * FROM pickup_number";
-            rs = stmt_source.executeQuery(SQL);
+    Dbtname = "pickup_number";
+    rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
+    txtOut.append("Pickup Number" + "\n");
+    SQL = "SELECT * FROM pickup_number";
+    rs = stmt_source.executeQuery(SQL);
 
-            String pickupNumber = null;
+    String pickupNumber = null;
 
-            while (rs.next()) {
-              pickupNumber = rs.getString("last_value");
-            }
+    while (rs.next()) {
+        pickupNumber = rs.getString("last_value");
+    }
 
-            if (pickupNumber != null) {
-              SQL = "UPDATE pickup_number SET ID=" + pickupNumber;
-            } else {
-              SQL = "UPDATE pickup_number SET ID='1'";
-            }
-            stmt_target.executeUpdate(SQL);
-          } else {
-            txtOut.append("Pickup Number... skipped" + "\n");
-          }
+    if (pickupNumber != null) {
+        SQL = "UPDATE pickup_number SET ID=?";
+        PreparedStatement pstmt = con_target.prepareStatement(SQL);
+        pstmt.setString(1, pickupNumber);
+        pstmt.executeUpdate();
+    } else {
+        SQL = "UPDATE pickup_number SET ID='1'";
+        stmt_target.executeUpdate(SQL);
+    }
+} else {
+    txtOut.append("Pickup Number... skipped" + "\n");
+}
           rs.close();
 
           Dbtname = "places";
@@ -1844,126 +1847,158 @@ private Properties readDbProperties(AppProperties props, String dbName) {
           rs.close();
 
           if (Dbtversion >= 3.50 && !jtxtDbType.getText().equals("jdbc:postgresql://")) {
-            Dbtname = "ticketsnum";
-            rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
-            txtOut.append("Tickets Number" + "\n");
-            SQL = "SELECT * FROM ticketsnum";
-            rs = stmt_source.executeQuery(SQL);
+  Dbtname = "ticketsnum";
+  rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
+  txtOut.append("Tickets Number" + "\n");
+  SQL = "SELECT * FROM ticketsnum";
+  rs = stmt_source.executeQuery(SQL);
 
-            while (rs.next()) {
-              ticketsnum = rs.getString("ID");
-            }
-            if (ticketsnum != null) {
-              SQL = "UPDATE ticketsnum SET ID= " + ticketsnum;
-            } else {
-              SQL = "UPDATE ticketsnum SET ID='1'";
-            }
-            stmt_target.executeUpdate(SQL);
-          } else {
-            txtOut.append("Ticket Number... skipped" + "\n");
-          }
+  while (rs.next()) {
+    ticketsnum = rs.getString("ID");
+  }
+
+  if (ticketsnum != null) {
+    SQL = "UPDATE ticketsnum SET ID=?";
+    PreparedStatement pstmt = con_target.prepareStatement(SQL);
+    pstmt.setString(1, ticketsnum);
+    pstmt.executeUpdate();
+  } else {
+    SQL = "UPDATE ticketsnum SET ID='1'";
+    stmt_target.executeUpdate(SQL);
+  }
+} else {
+  txtOut.append("Ticket Number... skipped" + "\n");
+}
 // deliberately verbose chunk so can see diff's between PostgreSQL v9 & v10
           if (Dbtversion >= 3.50 && jtxtDbType.getText().equals("jdbc:postgresql://")) {
-            Dbtname = "ticketsnum";
-            rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
-            txtOut.append("Tickets Number" + "\n");
-            SQL = "SELECT * FROM ticketsnum";
-            rs = stmt_source.executeQuery(SQL);
+  Dbtname = "ticketsnum";
+  rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
+  txtOut.append("Tickets Number" + "\n");
+  SQL = "SELECT * FROM ticketsnum";
+  rs = stmt_source.executeQuery(SQL);
 
-            while (rs.next()) {
-              ticketsnum = rs.getString("last_value");
-            }
-            if (ticketsnum != null) {
-              SQL = "UPDATE ticketsnum SET ID= " + ticketsnum;
-            } else {
-              SQL = "UPDATE ticketsnum SET ID='1'";
-            }
-            stmt_target.executeUpdate(SQL);
-          } else {
-            txtOut.append("Ticket Number... skipped" + "\n");
-          }
+  PreparedStatement pstmt_target = null;
+  String updateSQL = "UPDATE ticketsnum SET ID = ?";
+  pstmt_target = con_target.prepareStatement(updateSQL);
+
+  while (rs.next()) {
+    String ticketsnum = rs.getString("last_value");
+    if (ticketsnum != null) {
+      pstmt_target.setString(1, ticketsnum);
+    } else {
+      pstmt_target.setString(1, "1");
+    }
+    pstmt_target.executeUpdate();
+  }
+} else {
+  txtOut.append("Ticket Number... skipped" + "\n");
+}
           rs.close();
 
           if (Dbtversion >= 3.50 && !jtxtDbType.getText().equals("jdbc:postgresql://")) {
-            Dbtname = "ticketsnum_payment";
-            rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
-            txtOut.append("Tickets Number Payments" + "\n");
-            SQL = "SELECT * FROM ticketsnum_payment";
-            rs = stmt_source.executeQuery(SQL);
+    Dbtname = "ticketsnum_payment";
+    rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
+    txtOut.append("Tickets Number Payments" + "\n");
+    SQL = "SELECT * FROM ticketsnum_payment";
+    rs = stmt_source.executeQuery(SQL);
 
-            while (rs.next()) {
-              ticketsnumPayment = rs.getString("ID");
-            }
-            if (ticketsnumPayment != null) {
-              SQL = "UPDATE ticketsnum_payment SET ID= " + ticketsnumPayment;
-            } else {
-              SQL = "UPDATE ticketsnum_payment SET ID='1'";
-            }
-            stmt_target.executeUpdate(SQL);
-          } else {
-            txtOut.append("Ticket Payment... skipped" + "\n");
-          }
+    while (rs.next()) {
+        ticketsnumPayment = rs.getString("ID");
+    }
+    if (ticketsnumPayment != null) {
+        SQL = "UPDATE ticketsnum_payment SET ID= ?";
+        PreparedStatement pstmt = con_target.prepareStatement(SQL);
+        pstmt.setString(1, ticketsnumPayment);
+        pstmt.executeUpdate();
+    } else {
+        SQL = "UPDATE ticketsnum_payment SET ID='1'";
+        stmt_target.executeUpdate(SQL);
+    }
+} else {
+    txtOut.append("Ticket Payment... skipped" + "\n");
+}
 // deliberately verbose chunk so can see diff's between PostgreSQL v9 & v10 sequence
           if (Dbtversion >= 3.50 && jtxtDbType.getText().equals("jdbc:postgresql://")) {
-            Dbtname = "ticketsnum_payment";
-            rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
-            txtOut.append("Tickets Number Payments" + "\n");
-            SQL = "SELECT * FROM ticketsnum_payment";
-            rs = stmt_source.executeQuery(SQL);
+    Dbtname = "ticketsnum_payment";
+    rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
+    txtOut.append("Tickets Number Payments" + "\n");
+    SQL = "SELECT * FROM ticketsnum_payment";
+    rs = stmt_source.executeQuery(SQL);
 
-            while (rs.next()) {
-              ticketsnumPayment = rs.getString("last_value");
-            }
-            if (ticketsnumPayment != null) {
-              SQL = "UPDATE ticketsnum_payment SET ID= " + ticketsnumPayment;
-            } else {
-              SQL = "UPDATE ticketsnum_payment SET ID='1'";
-            }
-            stmt_target.executeUpdate(SQL);
-          } else {
-            txtOut.append("Ticket Number Payments... skipped" + "\n");
-          }
+    while (rs.next()) {
+        ticketsnumPayment = rs.getString("last_value");
+    }
+
+    PreparedStatement pstmt = con_target.prepareStatement("UPDATE ticketsnum_payment SET ID = ?");
+    if (ticketsnumPayment != null) {
+        pstmt.setString(1, ticketsnumPayment);
+    } else {
+        pstmt.setString(1, "1");
+    }
+
+    pstmt.executeUpdate();
+} else {
+    txtOut.append("Ticket Number Payments... skipped" + "\n");
+}
           rs.close();
 
           if (Dbtversion >= 3.50 && !jtxtDbType.getText().equals("jdbc:postgresql://")) {
-            Dbtname = "ticketsnum_refund";
-            rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
-            txtOut.append("Tickets Number Refunds" + "\n");
-            SQL = "SELECT * FROM ticketsnum_refund";
-            rs = stmt_source.executeQuery(SQL);
-
-            while (rs.next()) {
-              ticketsnumRefund = rs.getString("ID");
-            }
-            if (ticketsnumRefund != null) {
-              SQL = "UPDATE ticketsnum_refund SET ID= " + ticketsnumRefund;
-            } else {
-              SQL = "UPDATE ticketsnum_refund SET ID='1'";
-            }
-            stmt_target.executeUpdate(SQL);
-          } else {
-            txtOut.append("Ticket Refund... skipped" + "\n");
-          }
+    Dbtname = "ticketsnum_refund";
+    rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
+    txtOut.append("Tickets Number Refunds" + "\n");
+    SQL = "SELECT * FROM ticketsnum_refund";
+    try (PreparedStatement pstmt = con_source.prepareStatement(SQL)) {
+        rs = pstmt.executeQuery();
+        while (rs.next()) {
+            ticketsnumRefund = rs.getString("ID");
+        }
+    } catch (SQLException e) {
+        // handle the exception
+    }
+    if (ticketsnumRefund != null) {
+        SQL = "UPDATE ticketsnum_refund SET ID= ?";
+        try (PreparedStatement pstmt = con_target.prepareStatement(SQL)) {
+            pstmt.setString(1, ticketsnumRefund);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            // handle the exception
+        }
+    } else {
+        SQL = "UPDATE ticketsnum_refund SET ID='1'";
+        try (PreparedStatement pstmt = con_target.prepareStatement(SQL)) {
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            // handle the exception
+        }
+    }
+} else {
+    txtOut.append("Ticket Refund... skipped" + "\n");
+}
 // deliberately verbose chunk so can see diff's between PostgreSQL v9 & v10 sequence
           if (Dbtversion >= 3.50 && jtxtDbType.getText().equals("jdbc:postgresql://")) {
-            Dbtname = "ticketsnum_payment";
-            rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
-            txtOut.append("Tickets Number Refunds" + "\n");
-            SQL = "SELECT * FROM ticketsnum_refund";
-            rs = stmt_source.executeQuery(SQL);
+    Dbtname = "ticketsnum_refund";
+    rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
+    txtOut.append("Tickets Number Refunds" + "\n");
+    SQL = "SELECT * FROM ticketsnum_refund";
+    PreparedStatement pstmt = con_source.prepareStatement(SQL);
+    rs = pstmt.executeQuery();
 
-            while (rs.next()) {
-              ticketsnumRefund = rs.getString("last_value");
-            }
-            if (ticketsnumRefund != null) {
-              SQL = "UPDATE ticketsnum_refund SET ID= " + ticketsnumRefund;
-            } else {
-              SQL = "UPDATE ticketsnum_refund SET ID='1'";
-            }
-            stmt_target.executeUpdate(SQL);
-          } else {
-            txtOut.append("Ticket Refund... skipped" + "\n");
-          }
+    while (rs.next()) {
+        ticketsnumRefund = rs.getString("last_value");
+    }
+
+    if (ticketsnumRefund != null) {
+        SQL = "UPDATE ticketsnum_refund SET ID=?";
+        pstmt = con_target.prepareStatement(SQL);
+        pstmt.setString(1, ticketsnumRefund);
+        pstmt.executeUpdate();
+    } else {
+        SQL = "UPDATE ticketsnum_refund SET ID='1'";
+        stmt_target.executeUpdate(SQL);
+    }
+} else {
+    txtOut.append("Ticket Refund... skipped" + "\n");
+}
           rs.close();
 
 // introduced in 4
