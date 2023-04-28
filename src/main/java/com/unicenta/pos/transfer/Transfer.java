@@ -32,10 +32,13 @@ import com.unicenta.pos.forms.*;
 import com.unicenta.pos.util.AltEncrypter;
 import com.unicenta.pos.util.DirectoryEvent;
 import lombok.extern.slf4j.Slf4j;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -54,14 +57,14 @@ public final class Transfer extends JPanel implements JPanelView {
   private DirtyManager dirty = new DirtyManager();
   private AppConfig config;
   private AppProperties m_props;
-  private Properties m_propsdb = null;
 
   private List<PanelConfig> m_panelconfig;
 
   private Connection con_source;
   private Connection con_target;
 
-  private String sDB_source;
+  //private String sDB_source;
+  //commenting because we dont appear to actually use it anywhere
   private String sDB_target;
 
   private Session session_source;
@@ -86,10 +89,7 @@ public final class Transfer extends JPanel implements JPanelView {
 
   public String strOut = "";
 
-  // the db connection session
-  private Session s;
-  private Connection con;
-  private Session session;
+
 
   String db_url = null;
   String db_schema = null;
@@ -171,7 +171,6 @@ public final class Transfer extends JPanel implements JPanelView {
    * @return
    */
   public Boolean getSource() {
-
     String db_url2 = jtxtDbType.getText()
             + jtxtDbServerPort.getText()
             + jtxtDbName.getText()
@@ -185,52 +184,56 @@ public final class Transfer extends JPanel implements JPanelView {
     connectionProps.put("password", db_password2);
 
     try {
-      Class.forName(jtxtDbDriver.getText());
+        Class.forName(jtxtDbDriver.getText());
 
-      ClassLoader cloader = new URLClassLoader(
-              new URL[]{
-                      new File(jtxtDbDriverLib.getText()).toURI().toURL()
-              });
-      DriverManager.registerDriver(
-              new DriverWrapper((Driver) Class.forName(jtxtDbDriver.getText(),
-                      true, cloader).getDeclaredConstructor().newInstance()));
-      con_source = (Connection) DriverManager.getConnection(
-              db_url2, db_user2, db_password2);
+        ClassLoader cloader = new URLClassLoader(
+                new URL[]{
+                        new File(jtxtDbDriverLib.getText()).toURI().toURL()
+                });
+        DriverManager.registerDriver(
+                new DriverWrapper((Driver) Class.forName(jtxtDbDriver.getText(),
+                        true, cloader).getDeclaredConstructor().newInstance()));
+        con_source = (Connection) DriverManager.getConnection(
+                db_url2, db_user2, db_password2);
 
-      session_source = new Session(db_url2, db_user2, db_password2);
-      sDB_source = con_source.getMetaData().getDatabaseProductName();
+        session_source = new Session(db_url2, db_user2, db_password2);
+        //sDB_source = con_source.getMetaData().getDatabaseProductName();
 
-      txtOut.append("Connected to Source OK" + "\n");
-      jbtnTransfer.setEnabled(true);
+        txtOut.append("Connected to Source OK" + "\n");
+        jbtnTransfer.setEnabled(true);
 
-      return (true);
-
+        return true;
     } catch (InstantiationException
-              | IllegalAccessException
-              | MalformedURLException
-              | ClassNotFoundException e) {
+            | IllegalAccessException
+            | MalformedURLException
+            | ClassNotFoundException e) {
         JMessageDialog.showMessage(this,
-              new MessageInf(MessageInf.SGN_DANGER,
-                      AppLocal.getIntString("database.UnableToConnect"),
-                      e));
-                        return (false);
-
-      } catch (SQLException e) {
+                new MessageInf(MessageInf.SGN_DANGER,
+                        AppLocal.getIntString("database.UnableToConnect"),
+                        e));
+        return false;
+    } catch (SQLException e) {
         JMessageDialog.showMessage(this,
-              new MessageInf(MessageInf.SGN_DANGER,
-                      AppLocal.getIntString("database.UnableToConnect"),
-                      e));
-                        return (false);
-
-      } catch (Exception e) {
+                new MessageInf(MessageInf.SGN_DANGER,
+                        AppLocal.getIntString("database.UnableToConnect"),
+                        e));
+        return false;
+    } catch (Exception e) {
         JMessageDialog.showMessage(this,
-              new MessageInf(MessageInf.SGN_DANGER,
-                      AppLocal.getIntString("database.UnableToConnect"),
-                      e));
-                return (false);
-      }
-
-  }
+                new MessageInf(MessageInf.SGN_DANGER,
+                        AppLocal.getIntString("database.UnableToConnect"),
+                        e));
+        return false;
+    } finally {
+        if (con_source != null) {
+            try {
+                con_source.close();
+            } catch (SQLException e) {
+                // log error if needed
+            }
+        }
+    }
+}
 
 
   /**
@@ -323,93 +326,59 @@ public final class Transfer extends JPanel implements JPanelView {
   /**
    * @throws BasicException
    */
-  @Override
-  public void activate() throws BasicException {
+@Override
+public void activate() throws BasicException {
     /*
      * Repeating this block as Transfer can be run externally
      */
 
+    Properties dbProps;
     if ("true".equals(m_props.getProperty("db.multi"))) {
-      ImageIcon icon = new ImageIcon("/com/unicenta/images/unicentaopos.png");
-      Object[] dbs = {
-              "0 - " + m_props.getProperty("db.name"),
-              "1 - " + m_props.getProperty("db1.name")};
+        ImageIcon icon = new ImageIcon(getClass().getResource("/com/unicenta/images/unicentaopos.png"));
+        Object[] dbs = {"0 - " + m_props.getProperty("db.name"), "1 - " + m_props.getProperty("db1.name")};
+        Object s = JOptionPane.showInputDialog(null, AppLocal.getIntString("message.databasechoose"), "Selection", JOptionPane.OK_OPTION, icon, dbs, m_props.getProperty("db.name"));
 
-      Object s = (Object) JOptionPane.showInputDialog(
-              null, AppLocal.getIntString("message.databasechoose"),
-              "Selection", JOptionPane.OK_OPTION,
-              icon, dbs, m_props.getProperty("db.name"));
-
-      if (s.toString().startsWith("1")) {
-        db_url = (m_props.getProperty("db1.URL"));
-        db_schema = (m_props.getProperty("db1.schema"));
-        db_options = (m_props.getProperty("db1.options"));
-        db_user = (m_props.getProperty("db1.user"));
-        db_password = (m_props.getProperty("db1.password"));
-        if (db_user != null && db_password != null && db_password.startsWith("crypt:")) {
-          AltEncrypter cypher = new AltEncrypter("cypherkey" + db_user);
-          db_password = cypher.decrypt(db_password.substring(6));
+        if (s.toString().startsWith("1")) {
+            dbProps = readDbProperties(m_props, "db1");
+        } else {
+            dbProps = readDbProperties(m_props, "db");
         }
-        String url = db_url + db_schema + db_options;
-        try {
-          session_target = new Session(url, db_user, db_password);
-          con_target = DriverManager.getConnection(url, db_user, db_password);
-          sDB_target = con_target.getMetaData().getDatabaseProductName();
-          jlblSource.setText(con_target.getCatalog());
-        } catch (SQLException e) {
-          JMessageDialog.showMessage(this,
-                  new MessageInf(MessageInf.SGN_DANGER,
-                          AppLocal.getIntString("database.UnableToConnect"),
-                          e));
-        }
-
-      } else {
-        db_url = (m_props.getProperty("db.URL"));
-        db_schema = (m_props.getProperty("db.schema"));
-        db_options = (m_props.getProperty("db.options"));
-        db_user = (m_props.getProperty("db.user"));
-        db_password = (m_props.getProperty("db.password"));
-        if (db_user != null && db_password != null && db_password.startsWith("crypt:")) {
-          AltEncrypter cypher = new AltEncrypter("cypherkey" + db_user);
-          db_password = cypher.decrypt(db_password.substring(6));
-        }
-        String url = db_url + db_schema + db_options;
-        try {
-          session_target = new Session(url, db_user, db_password);
-          con_target = DriverManager.getConnection(url, db_user, db_password);
-          sDB_target = con_target.getMetaData().getDatabaseProductName();
-          jlblSource.setText(con_target.getCatalog());
-        } catch (SQLException e) {
-          JMessageDialog.showMessage(this,
-                  new MessageInf(MessageInf.SGN_DANGER,
-                          AppLocal.getIntString("database.UnableToConnect"),
-                          e));
-        }
-      }
     } else {
-      db_url = (m_props.getProperty("db.URL"));
-      db_schema = (m_props.getProperty("db.schema"));
-      db_options = (m_props.getProperty("db.options"));
-      db_user = (m_props.getProperty("db.user"));
-      db_password = (m_props.getProperty("db.password"));
-      if (db_user != null && db_password != null && db_password.startsWith("crypt:")) {
-        AltEncrypter cypher = new AltEncrypter("cypherkey" + db_user);
+        dbProps = readDbProperties(m_props, "db");
+    }
+
+    String dbUrl = dbProps.getProperty("URL") + dbProps.getProperty("schema") + dbProps.getProperty("options");
+    String dbUser = dbProps.getProperty("user");
+    String dbPassword = dbProps.getProperty("password");
+    if (dbUser != null && dbPassword != null && dbPassword.startsWith("crypt:")) {
+        AltEncrypter cypher = new AltEncrypter("cypherkey" + dbUser);
+        try {
         db_password = cypher.decrypt(db_password.substring(6));
-      }
-      String url = db_url + db_schema + db_options;
-      try {
-        session_target = new Session(url, db_user, db_password);
-        con_target = DriverManager.getConnection(url, db_user, db_password);
+    } catch (IOException ex) {
+        throw new BasicException(ex);
+    }
+    }
+
+    try {
+        session_target = new Session(dbUrl, dbUser, dbPassword);
+        con_target = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
         sDB_target = con_target.getMetaData().getDatabaseProductName();
         jlblSource.setText(con_target.getCatalog());
-      } catch (SQLException e) {
-        JMessageDialog.showMessage(this,
-                new MessageInf(MessageInf.SGN_DANGER,
-                        AppLocal.getIntString("database.UnableToConnect"),
-                        e));
-      }
+    } catch (SQLException e) {
+        Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Unable to connect to database", e);
+        JMessageDialog.showMessage(this, new MessageInf(MessageInf.SGN_DANGER, AppLocal.getIntString("database.UnableToConnect"), e));
     }
-  }
+}
+
+private Properties readDbProperties(AppProperties props, String dbName) {
+    Properties dbProps = new Properties();
+    dbProps.setProperty("URL", props.getProperty(dbName + ".URL"));
+    dbProps.setProperty("schema", props.getProperty(dbName + ".schema"));
+    dbProps.setProperty("options", props.getProperty(dbName + ".options"));
+    dbProps.setProperty("user", props.getProperty(dbName + ".user"));
+    dbProps.setProperty("password", props.getProperty(dbName + ".password"));
+    return dbProps;
+}
 
   /**
    * @return
