@@ -223,7 +223,7 @@
     <dependency>
       <groupId>org.netbeans.external</groupId>
       <artifactId>AbsoluteLayout</artifactId>
-      <version>RELEASE82</version>
+      <version>RELEASE90</version>
     </dependency>
     <dependency>
       <groupId>com.javapos</groupId>
