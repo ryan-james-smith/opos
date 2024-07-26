@@ -19,6 +19,7 @@
 
 package com.unicenta.pos.config;
 
+import com.alee.laf.WebLookAndFeel;
 import com.unicenta.basic.BasicException;
 import com.unicenta.pos.forms.AppConfig;
 import com.unicenta.pos.forms.AppLocal;
@@ -37,35 +38,35 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
  * @author adrianromero
  */
 public class JFrmConfig extends javax.swing.JFrame {
-
+ 
     private final JPanelConfiguration config;
-
+    
     /** Creates new form JFrmConfig
      * @param props */
     public JFrmConfig(AppProperties props) {
-
+      
         initComponents();
-
+        
         try {
             this.setIconImage(ImageIO.read(JRootFrame.class.getResourceAsStream("/com/unicenta/images/favicon.png")));
         } catch (IOException e) {
-        }
+        }   
         setTitle(AppLocal.APP_NAME + " - " + AppLocal.APP_VERSION + " - " + AppLocal.getIntString("Menu.Configuration"));
-
-        addWindowListener(new MyFrameListener());
-
+        
+        addWindowListener(new MyFrameListener()); 
+        
         config = new JPanelConfiguration(props);
-
+        
         getContentPane().add(config, BorderLayout.CENTER);
-
+       
         try {
             config.activate();
         } catch (BasicException e) { // never thrown ;-)
         }
     }
-
+    
     private class MyFrameListener extends WindowAdapter{
-
+        
         @Override
         public void windowClosing(WindowEvent evt) {
             if (config.deactivate()) {
@@ -76,7 +77,7 @@ public class JFrmConfig extends javax.swing.JFrame {
         public void windowClosed(WindowEvent evt) {
             System.exit(0);
         }
-    }
+    }    
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -92,7 +93,7 @@ public class JFrmConfig extends javax.swing.JFrame {
         setSize(new java.awt.Dimension(808, 794));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
-
+    
     /**
      * @param args the command line arguments
      */
@@ -100,13 +101,13 @@ public class JFrmConfig extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
-
+                
                 AppConfig config = new AppConfig(args);
                 config.load();
 
                 // Set the look and feel
                 try {
-                    Object laf = Class.forName(config.getProperty("swing.defaultlaf")).getDeclaredConstructor().newInstance();
+                    Object laf = Class.forName(config.getProperty("swing.defaultlaf")).newInstance();
                     if (!(laf instanceof MetalLookAndFeel) && laf instanceof LookAndFeel) {
                         UIManager.setLookAndFeel((LookAndFeel) laf);
                     } else {
@@ -115,13 +116,13 @@ public class JFrmConfig extends javax.swing.JFrame {
                 } catch (Exception e) {
                     System.out.println("Cannot set Look and Feel "+e.getMessage());
                 }
-
+                
                 new JFrmConfig(config).setVisible(true);
             }
         });
     }
-
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables
-
+    
 }

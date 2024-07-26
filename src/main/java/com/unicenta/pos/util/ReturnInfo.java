@@ -15,9 +15,7 @@ import com.unicenta.data.loader.SerializerRead;
  * @author JA - based on A Escartin Barcode
  * 15 Dec 2013
  */
-import java.io.Serializable;
-
-public class ReturnInfo implements SerializableRead, IKeyed, Serializable {
+public class ReturnInfo implements SerializableRead, IKeyed {
 
     private static final long serialVersionUID = 8906929819402L;
     private Integer idret;

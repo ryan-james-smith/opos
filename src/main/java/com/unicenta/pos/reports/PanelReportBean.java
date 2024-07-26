@@ -22,6 +22,7 @@ package com.unicenta.pos.reports;
 import com.unicenta.basic.BasicException;
 import com.unicenta.data.loader.*;
 import com.unicenta.data.user.EditorCreator;
+import com.unicenta.pos.forms.AppConfig;
 import com.unicenta.pos.forms.AppLocal;
 import com.unicenta.pos.forms.AppView;
 import com.unicenta.pos.forms.BeanFactoryException;
@@ -197,5 +198,12 @@ public class PanelReportBean extends JPanelReport {
      */
     public void addQBFFilter(ReportEditorCreator qbff) {
         qbffilter.addEditor(qbff);
-    }    
+    }
+    public String getDBType() {
+        String url = AppConfig.getInstance().getProperty("db.URL");
+        if (url.contains("derby")) {
+            return "derby";
+        }
+        return "mysql";
+    }
 }

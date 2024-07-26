@@ -67,12 +67,12 @@ public class PreparedSentence extends JDBCSentence {
 
     /**
      *
-     * @param s
+     * @param session
      * @param sentence
      * @param serwrite
      */
-    public PreparedSentence(Session s, String sentence, SerializerWrite serwrite) {         
-        this(s, sentence, serwrite, null);
+    public PreparedSentence(Session session, String sentence, SerializerWrite serwrite) {
+        this(session, sentence, serwrite, null);
     }
 
     /**

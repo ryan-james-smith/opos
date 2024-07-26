@@ -228,7 +228,7 @@ public class AppConfig implements AppProperties {
 
   }
 
-  private void refreshProperties() {
+  private void pullLatestProperties() {
     try {
       InputStream in = new FileInputStream(configfile);
       if (in != null) {
@@ -252,9 +252,11 @@ public class AppConfig implements AppProperties {
     }
   }
 
-  public void saveWithExistingProperties() throws IOException {
+  public void setLastTicket(String lastTicketNumber, String lastTicketType) throws IOException {
 
-    refreshProperties();
+    pullLatestProperties();
+    properties.setProperty("lastticket.number", lastTicketNumber);
+    properties.setProperty("lastticket.type", lastTicketType);
 
     OutputStream out = new FileOutputStream(configfile);
     if (out != null) {

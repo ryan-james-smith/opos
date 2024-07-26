@@ -58,13 +58,25 @@ public class JRootKiosk extends javax.swing.JFrame implements AppMessage {
         initComponents();
     }
 
+    public JRootApp getRootapp() {
+        return m_rootapp;
+    }
+
+    public void setRootapp(JRootApp m_rootapp) {
+        this.m_rootapp = m_rootapp;
+    }
+
     /**
      *
      * @param props
      * @throws java.io.IOException
      */
     public void initFrame(AppProperties props) throws IOException {
-        
+
+        String osName = System.getProperty("os.name").toLowerCase();
+        boolean isWindows = osName.startsWith("windows");
+        boolean isMac = osName.startsWith("mac");
+
         m_OS = new OSValidator();
         m_props = props;
         
@@ -84,21 +96,16 @@ public class JRootKiosk extends javax.swing.JFrame implements AppMessage {
             setTitle(AppLocal.APP_NAME + " - " + AppLocal.APP_VERSION);
             
             Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
-            setBounds(0, 0, d.width, d.height);        
+            if (isMac) {
+                setBounds(0, 25, d.width, d.height - 25);
+            }
+            else {
+                setBounds(0, 0, d.width, d.height);
+            }
 
-/*  
- *  4 Sep 17 JG
- *  2 Dec 17 - Mod' Thanks Hayk Sokolov!
- *  Change here for Linux/Ubuntu full screen
- *  Thanks to Hans Lengerke for solution
-*/            
-            String osName = System.getProperty("os.name").toLowerCase();
-            boolean isWindows = osName.startsWith("windows");
+            GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 
-            GraphicsDevice device = GraphicsEnvironment
-            .getLocalGraphicsEnvironment().getDefaultScreenDevice();
-
-            if (device.isFullScreenSupported() && !isWindows) {
+            if (device.isFullScreenSupported() && !isWindows && !isMac) {
                 setResizable(true);
 
                 addFocusListener(new FocusListener() {
@@ -121,7 +128,8 @@ public class JRootKiosk extends javax.swing.JFrame implements AppMessage {
                 "Connection", JOptionPane.INFORMATION_MESSAGE);
 
             new JFrmConfig(props).setVisible(true);                             // Show the configuration window.
-        }       
+        }
+        setRootapp(m_rootapp);
     }
 
     @Override

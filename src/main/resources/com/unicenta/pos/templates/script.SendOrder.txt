@@ -31,7 +31,7 @@ private boolean printedP6 = false;
 for(int i= 0; i < ticket.getLinesCount(); i++){
     line = ticket.getLine(i);
 
-    if (line.getProperty("product.printer")!=null) {
+   if (line.getProperty("product.printer")!=null && line.getProperty("ticket.updated")!=null) {
 
         if (line.getProperty("product.printer").equals("1")) {
             if((printedP1 == false) && line.getProperty("ticket.updated").equals("true")) {

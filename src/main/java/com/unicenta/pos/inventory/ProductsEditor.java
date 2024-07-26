@@ -487,7 +487,7 @@ public final class ProductsEditor extends javax.swing.JPanel implements EditorRe
     myprod[28] = m_UomModel.getSelectedKey();
     myprod[29] = Formats.TIMESTAMP.parseValue(m_jdate.getText());
 
-    myprod[30] = m_jInCatalog.isSelected();
+    myprod [30] = m_jInCatalog.isSelected();
     myprod[31] = Formats.INT.parseValue(m_jCatalogOrder.getText());
 
     if (m_jName.getText().contains("&")) {

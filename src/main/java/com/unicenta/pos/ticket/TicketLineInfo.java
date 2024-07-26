@@ -19,6 +19,7 @@
 
 package com.unicenta.pos.ticket;
 
+import com.google.gson.Gson;
 import com.unicenta.basic.BasicException;
 import com.unicenta.data.loader.DataRead;
 import com.unicenta.data.loader.DataWrite;
@@ -40,6 +41,12 @@ public class TicketLineInfo implements SerializableWrite, SerializableRead, Seri
     private String m_sTicket;
     private int m_iLine;
     private double multiply;
+
+    @Override
+    public String toString() {
+        return new Gson().toJson(this);
+    }
+
     private double price;
     private TaxInfo tax;
     private Properties attributes;

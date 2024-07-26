@@ -39,6 +39,8 @@ public class PaymentGatewayFac {
                 return new PaymentGatewayExt();
             case "PaymentSense":
                 return new PaymentGatewayPaymentSense();
+            case "Teya":
+                return new PaymentGatewayTeya();
             default:
                 return null;
         }

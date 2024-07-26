@@ -30,7 +30,7 @@ import com.unicenta.data.user.StateListener;
  * @author  adrianromero
  */
 public class JCounter extends JPanel implements BrowseListener, StateListener  {
-
+    
     /** Creates new form JCounter
      * @param bd */
     public JCounter(BrowsableEditableData bd) {
@@ -38,7 +38,7 @@ public class JCounter extends JPanel implements BrowseListener, StateListener  {
         bd.addBrowseListener(this);
         bd.addStateListener(this);
     }
-
+    
     /**
      *
      * @param iState
@@ -48,7 +48,7 @@ public class JCounter extends JPanel implements BrowseListener, StateListener  {
              // Insert
             jlblIndex.setText("*");
         }
-    }
+    }  
 
     /**
      *
@@ -58,13 +58,13 @@ public class JCounter extends JPanel implements BrowseListener, StateListener  {
     public void updateIndex(int iIndex, int iCounter) {
 
         if (iIndex >= 0 && iIndex < iCounter) {
-            jlblIndex.setText(Formats.INT.formatValue(Integer.valueOf(iIndex + 1)));
+            jlblIndex.setText(Formats.INT.formatValue(new Integer(iIndex + 1)));
         } else {
             jlblIndex.setText("-");
         }
-        jlblCounter.setText(Formats.INT.formatValue(Integer.valueOf(iCounter)));
-    }
-
+        jlblCounter.setText(Formats.INT.formatValue(new Integer(iCounter)));
+    }    
+    
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -100,5 +100,5 @@ public class JCounter extends JPanel implements BrowseListener, StateListener  {
     private javax.swing.JLabel jlblCounter;
     private javax.swing.JLabel jlblIndex;
     // End of variables declaration//GEN-END:variables
-
+    
 }

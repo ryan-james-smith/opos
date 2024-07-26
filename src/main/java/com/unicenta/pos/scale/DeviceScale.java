@@ -56,6 +56,9 @@ public class DeviceScale {
             case "samsungesp":
                 m_scale = new ScaleSamsungEsp(sScaleParam1);
                 break;
+            case "samsungesp-v2":
+                m_scale = new ScaleSamsungEspV2(sScaleParam1);
+                break;
             case "caspdii":
                 m_scale = new ScaleCASPDII(sScaleParam1);
                 break;

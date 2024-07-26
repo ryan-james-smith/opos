@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- *
  * @author JG uniCenta
  */
 @Slf4j
@@ -50,120 +49,158 @@ public abstract class BasicTicket implements PrintItem {
      *
      */
     protected int m_iBodyHeight;
-   
-       /** Creates a new instance of AbstractTicket */
-       public BasicTicket() {
-// JG 16 May 12 use diamond inference
-           m_aCommands = new ArrayList<>();
-           pil = null;
-           m_iBodyHeight = 0;
-       }
 
     /**
-     *
+     * Creates a new instance of AbstractTicket
+     */
+    public BasicTicket() {
+// JG 16 May 12 use diamond inference
+        m_aCommands = new ArrayList<>();
+        pil = null;
+        m_iBodyHeight = 0;
+    }
+
+    /**
      * @return
      */
     protected abstract Font getBaseFont();
 
     /**
-     *
      * @return
      */
     protected abstract int getFontHeight();
 
     /**
-     *
      * @return
      */
     protected abstract double getImageScale();
 
     /**
-     *
      * @return
      */
     @Override
-       public int getHeight() {
-          return m_iBodyHeight;
-       }
+    public int getHeight() {
+        return m_iBodyHeight;
+    }
 
     /**
-     *
      * @param g2d
      * @param x
      * @param y
      * @param width
      */
     @Override
-       public void draw(Graphics2D g2d, int x, int y, int width) {
+    public void draw(Graphics2D g2d, int x, int y, int width) {
 
-           int currenty = y;
-           for (PrintItem pi : m_aCommands) {
-               pi.draw(g2d, x, currenty, width);
-               currenty += pi.getHeight();
-           }
-       }
+        int currenty = y;
+        for (PrintItem pi : m_aCommands) {
+            pi.draw(g2d, x, currenty, width);
+            currenty += pi.getHeight();
+        }
+
+        saveTicket(g2d, x, y, width);
+
+    }
+
+    private void saveTicket(Graphics2D g2d, int x, int y, int width) {
+
+        int receiptHeight = 5;
+
+        PrintItem pi;
+        for(Iterator i$ = m_aCommands.iterator(); i$.hasNext(); receiptHeight += pi.getHeight()) {
+            pi = (PrintItem)i$.next();
+        }
+
+        BufferedImage image = new BufferedImage(width + 10, receiptHeight, 1);
+        g2d = image.createGraphics();
+        int currenty = y;
+
+        for(Iterator i$ = this.m_aCommands.iterator(); i$.hasNext(); currenty += pi.getHeight()) {
+            pi = (PrintItem)i$.next();
+            if (pi instanceof PrintItemImage)  {
+                ((PrintItemImage) pi).setImage(negative(((PrintItemImage) pi).getImage()));
+            }
+            pi.draw(g2d, x, currenty, width);
+        }
+
+        try {
+            ImageIO.write(this.negative(image), "png", new File(System.getProperty("user.home") + "/receipt.png"));
+        }
+        catch (Exception e) {
+            System.out.println("Error serialising receipt image !!! : " + e);
+        }
+
+    }
+
+    public BufferedImage negative(BufferedImage img) {
+        for (int x = 0; x < img.getWidth(); ++x) {
+            for (int y = 0; y < img.getHeight(); ++y) {
+                int RGBA = img.getRGB(x, y);
+                Color col = new Color(RGBA, true);
+                col = new Color(Math.abs(col.getRed() - 255), Math.abs(col.getGreen() - 255), Math.abs(col.getBlue() - 255));
+                img.setRGB(x, y, col.getRGB());
+            }
+        }
+
+        return img;
+    }
 
     /**
-     *
      * @return
      */
     public java.util.List<PrintItem> getCommands() {
-          return m_aCommands;
-       }
+        return m_aCommands;
+    }
 
-       // INTERFAZ PRINTER 2
+    // INTERFAZ PRINTER 2
 
     /**
-     *
      * @param image
      */
-           public void printImage(BufferedImage image) {
+    public void printImage(BufferedImage image) {
 
-           PrintItem pi = new PrintItemImage(image, getImageScale());
-           m_aCommands.add(pi);
-           m_iBodyHeight += pi.getHeight();
-       }
+        PrintItem pi = new PrintItemImage(image, getImageScale());
+        m_aCommands.add(pi);
+        m_iBodyHeight += pi.getHeight();
+    }
 
     /**
-     *
      * @param type
      * @param position
      * @param code
      */
     public void printBarCode(String type, String position, String code) {
 
-           PrintItem pi = new PrintItemBarcode(type, position, code, getImageScale());
-           m_aCommands.add(pi);
-           m_iBodyHeight += pi.getHeight();
-       }
+        PrintItem pi = new PrintItemBarcode(type, position, code, getImageScale());
+        m_aCommands.add(pi);
+        m_iBodyHeight += pi.getHeight();
+    }
 
     /**
-     *
      * @param iTextSize
      */
     public void beginLine(int iTextSize) {
-           pil = new PrintItemLine(iTextSize, getBaseFont(), getFontHeight());
-       }
+        pil = new PrintItemLine(iTextSize, getBaseFont(), getFontHeight());
+    }
 
     /**
-     *
      * @param iStyle
      * @param sText
      */
     public void printText(int iStyle, String sText) {
-           if (pil != null) {
-               pil.addText(iStyle, sText);
-           }
-       }
+        if (pil != null) {
+            pil.addText(iStyle, sText);
+        }
+    }
 
     /**
      *
      */
     public void endLine() {
-           if (pil != null) {
-               m_aCommands.add(pil);
-               m_iBodyHeight += pil.getHeight();
-               pil = null;
-           }
-       }
- }
+        if (pil != null) {
+            m_aCommands.add(pil);
+            m_iBodyHeight += pil.getHeight();
+            pil = null;
+        }
+    }
+}

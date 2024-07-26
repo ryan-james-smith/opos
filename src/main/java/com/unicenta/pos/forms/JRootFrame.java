@@ -61,6 +61,14 @@ public class JRootFrame extends javax.swing.JFrame implements AppMessage {
         initComponents();
     }
 
+    public JRootApp getRootapp() {
+        return m_rootapp;
+    }
+
+    public void setRootapp(JRootApp m_rootapp) {
+        this.m_rootapp = m_rootapp;
+    }
+
     /**
      * @param props
      */
@@ -98,6 +106,7 @@ public class JRootFrame extends javax.swing.JFrame implements AppMessage {
             new JFrmConfig(props).setVisible(true); // Show the configuration window.
         }
 
+        setRootapp(m_rootapp);
     }
 
     /**

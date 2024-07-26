@@ -36,15 +36,16 @@ if (index >= 0) {
         sdiscount = Formats.PERCENT.formatValue((discountrate));
         for (int number= 0; number < ticket.getLinesCount(); number++) {
             line = ticket.getLine(number);
-            ticket.setLine(number,
-            new TicketLineInfo(
-                    line.getProductID(),
-                    line.getProductName() + " - Item Discount @  " + sdiscount,
-                    line.getProductTaxCategoryID(),
-                    line.getProductPrinter(),
-                    line.getMultiply(),
-                    line.getNewPrice() - (double)Math.abs(line.getNewPrice() * discountrate * 100) /100,
-                    line.getTaxInfo())); 
+            TicketLineInfo ticketLineInfo = new TicketLineInfo(
+                                line.getProductID(),
+                                line.getProductName() + " - Item Discount @  " + sdiscount,
+                                line.getProductTaxCategoryID(),
+                                line.getProductPrinter(),
+                                line.getMultiply(),
+                                line.getNewPrice() - (double)Math.abs(line.getNewPrice() * discountrate * 100) /100,
+                                line.getTaxInfo());
+            ticketLineInfo.setTicketUpdated("ticket.updated", "true");
+            ticket.setLine(number,ticketLineInfo);
         }
     } else {
         java.awt.Toolkit.getDefaultToolkit().beep();

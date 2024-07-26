@@ -70,4 +70,12 @@ public class PrintItemImage implements PrintItem {
     public int getHeight() {
         return (int) (image.getHeight() * scale);
     }
+
+    public BufferedImage getImage() {
+        return image;
+    }
+
+    public void setImage(BufferedImage image) {
+        this.image = image;
+    }
 }

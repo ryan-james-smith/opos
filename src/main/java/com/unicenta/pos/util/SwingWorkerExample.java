@@ -23,10 +23,8 @@ package com.unicenta.pos.util;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class SwingWorkerExample extends JFrame implements ActionListener {
@@ -34,10 +32,10 @@ public class SwingWorkerExample extends JFrame implements ActionListener {
     private static final long serialVersionUID = 1L;
     private final JButton startButton, stopButton;
     private final JScrollPane scrollPane = new JScrollPane();
-    private JList<String> listBox = null;
-    private final DefaultListModel<String> listModel = new DefaultListModel<>();
+    private JList listBox = null;
+    private final DefaultListModel listModel = new DefaultListModel();
     private final JProgressBar progressBar;
-    private MySwingWorker swingWorker;
+    private mySwingWorker swingWorker;
 
     public SwingWorkerExample() {
         super("SwingWorkerExample");
@@ -47,7 +45,7 @@ public class SwingWorkerExample extends JFrame implements ActionListener {
         stopButton = makeButton("Stop");
         stopButton.setEnabled(false);
         progressBar = makeProgressBar(0, 99);
-        listBox = new JList<>(listModel);
+        listBox = new JList(listModel);
         scrollPane.setViewportView(listBox);
         getContentPane().add(scrollPane);
         //Display the window.
@@ -55,12 +53,12 @@ public class SwingWorkerExample extends JFrame implements ActionListener {
         setVisible(true);
     }
 //Class SwingWorker<T,V> T - the result type returned by this SwingWorker's doInBackground
-//and get methods V - the type used for carrying out intermediate results by this SwingWorker's
+//and get methods V - the type used for carrying out intermediate results by this SwingWorker's 
 //publish and process methods
 
-    private class MySwingWorker extends javax.swing.SwingWorker<ArrayList<Integer>, Integer> {
-//The first template argument, in this case, ArrayList<Integer>, is what s returned by doInBackground(),
-//and by get(). The second template argument, in this case, Integer, is what is published with the
+    private class mySwingWorker extends javax.swing.SwingWorker<ArrayList<Integer>, Integer> {
+//The first template argument, in this case, ArrayList<Integer>, is what s returned by doInBackground(), 
+//and by get(). The second template argument, in this case, Integer, is what is published with the 
 //publish method. It is also the data type which is stored by the java.util.List that is the parameter
 //for the process method, which recieves the information published by the publish method.
 
@@ -82,8 +80,8 @@ public class SwingWorkerExample extends JFrame implements ActionListener {
                         return list;
                     }
                 }
-//Successive calls to publish are coalesced into a java.util.List, which is what is received by process,
-//which in this case, isused to update the JProgressBar. Thus, the values passed to publish range from
+//Successive calls to publish are coalesced into a java.util.List, which is what is received by process, 
+//which in this case, isused to update the JProgressBar. Thus, the values passed to publish range from 
 //1 to 100.
                 publish(i);
                 list.add(tmpValue);
@@ -92,10 +90,10 @@ public class SwingWorkerExample extends JFrame implements ActionListener {
         }//Note, always use java.util.List here, or it will use the wrong list.
 
         @Override
-        protected void process(List<Integer> progressList) {
+        protected void process(java.util.List<Integer> progressList) {
 //This method is processing a java.util.List of items given as successive arguments to the publish method.
 //Note that these calls are coalesced into a java.util.List. This list holds items of the type given as the
-//second template parameter type to SwingWorker. Note that the get method below has nothing to do with the
+//second template parameter type to SwingWorker. Note that the get method below has nothing to do with the 
 //SwingWorker get method; it is the List's get method. This would be a good place to update a progress bar.
             if (!javax.swing.SwingUtilities.isEventDispatchThread()) {
                 System.out.println("javax.swing.SwingUtilities.isEventDispatchThread() + returned false.");
@@ -133,7 +131,7 @@ public class SwingWorkerExample extends JFrame implements ActionListener {
             return true;
         }
 
-        protected Integer FindNextPrime(int num) { //Returns next prime number from passed arg.
+        protected Integer FindNextPrime(int num) { //Returns next prime number from passed arg.       
             do {
                 if (num % 2 == 0) {
                     num++;
@@ -171,14 +169,15 @@ public class SwingWorkerExample extends JFrame implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if ("Start".equals(e.getActionCommand())) {
+        if ("Start" == null ? e.getActionCommand() == null : "Start".equals(e.getActionCommand())) {
             startButton.setEnabled(false);
             stopButton.setEnabled(true);
-            (swingWorker = new MySwingWorker()).execute();
-        } else if ("Stop".equals(e.getActionCommand())) {
+// Note that it creates a new instance of the SwingWorker-derived class. Never reuse an old one.
+            (swingWorker = new mySwingWorker()).execute(); // new instance
+        } else if ("Stop" == null ? e.getActionCommand() == null : "Stop".equals(e.getActionCommand())) {
             startButton.setEnabled(true);
             stopButton.setEnabled(false);
-            swingWorker.cancel(true);
+            swingWorker.cancel(true); // causes isCancelled to return true in doInBackground
             swingWorker = null;
         }
     }
@@ -186,7 +185,7 @@ public class SwingWorkerExample extends JFrame implements ActionListener {
     public static void main(String[] args) {
 // Notice that it kicks it off on the event-dispatching thread, not the main thread.
         SwingUtilities.invokeLater(() -> {
-            new SwingWorkerExample();
+            SwingWorkerExample swingWorkerExample = new SwingWorkerExample();
         });
     }
 }

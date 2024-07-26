@@ -336,7 +336,7 @@ CREATE TABLE `products` (
 	`stockunits` double NOT NULL default '0',
 	`printto` varchar(255) default '1',
 	`supplier` varchar(255) default NULL,
-        `uom` varchar(255) default '0',
+    `uom` varchar(255) default '0',
 	`memodate` datetime default '2018-01-01 00:00:01',
 
 	PRIMARY KEY  ( `id` ),

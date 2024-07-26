@@ -32,13 +32,10 @@ import com.unicenta.pos.forms.*;
 import com.unicenta.pos.util.AltEncrypter;
 import com.unicenta.pos.util.DirectoryEvent;
 import lombok.extern.slf4j.Slf4j;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -57,14 +54,14 @@ public final class Transfer extends JPanel implements JPanelView {
   private DirtyManager dirty = new DirtyManager();
   private AppConfig config;
   private AppProperties m_props;
+  private Properties m_propsdb = null;
 
   private List<PanelConfig> m_panelconfig;
 
   private Connection con_source;
   private Connection con_target;
 
-  //private String sDB_source;
-  //commenting because we dont appear to actually use it anywhere
+  private String sDB_source;
   private String sDB_target;
 
   private Session session_source;
@@ -76,6 +73,8 @@ public final class Transfer extends JPanel implements JPanelView {
   private Statement stmt_target;
   private PreparedStatement pstmt;
   private String SQL;
+
+  private String source_version;
 
   private String ticketsnum;
   private String ticketsnumRefund;
@@ -89,7 +88,11 @@ public final class Transfer extends JPanel implements JPanelView {
 
   public String strOut = "";
 
-
+  // the db connection session
+  private Session s;
+  private Connection con;
+  private Session session;
+  private boolean m_bInTransaction;
 
   String db_url = null;
   String db_schema = null;
@@ -171,6 +174,7 @@ public final class Transfer extends JPanel implements JPanelView {
    * @return
    */
   public Boolean getSource() {
+
     String db_url2 = jtxtDbType.getText()
             + jtxtDbServerPort.getText()
             + jtxtDbName.getText()
@@ -184,56 +188,40 @@ public final class Transfer extends JPanel implements JPanelView {
     connectionProps.put("password", db_password2);
 
     try {
-        Class.forName(jtxtDbDriver.getText());
+      Class.forName(jtxtDbDriver.getText());
 
-        ClassLoader cloader = new URLClassLoader(
-                new URL[]{
-                        new File(jtxtDbDriverLib.getText()).toURI().toURL()
-                });
-        DriverManager.registerDriver(
-                new DriverWrapper((Driver) Class.forName(jtxtDbDriver.getText(),
-                        true, cloader).getDeclaredConstructor().newInstance()));
-        con_source = (Connection) DriverManager.getConnection(
-                db_url2, db_user2, db_password2);
+      ClassLoader cloader = new URLClassLoader(
+              new URL[]{
+                      new File(jtxtDbDriverLib.getText()).toURI().toURL()
+              });
+      DriverManager.registerDriver(
+              new DriverWrapper((Driver) Class.forName(jtxtDbDriver.getText(),
+                      true, cloader).newInstance()));
+      con_source = (Connection) DriverManager.getConnection(
+              db_url2, db_user2, db_password2);
 
-        session_source = new Session(db_url2, db_user2, db_password2);
-        //sDB_source = con_source.getMetaData().getDatabaseProductName();
+      session_source = new Session(db_url2, db_user2, db_password2);
+      sDB_source = con_source.getMetaData().getDatabaseProductName();
 
-        txtOut.append("Connected to Source OK" + "\n");
-        jbtnTransfer.setEnabled(true);
+      txtOut.append("Connected to Source OK" + "\n");
+      jbtnTransfer.setEnabled(true);
 
-        return true;
-    } catch (InstantiationException
-            | IllegalAccessException
+      return (true);
+
+    } catch (ClassNotFoundException
             | MalformedURLException
-            | ClassNotFoundException e) {
-        JMessageDialog.showMessage(this,
-                new MessageInf(MessageInf.SGN_DANGER,
-                        AppLocal.getIntString("database.UnableToConnect"),
-                        e));
-        return false;
-    } catch (SQLException e) {
-        JMessageDialog.showMessage(this,
-                new MessageInf(MessageInf.SGN_DANGER,
-                        AppLocal.getIntString("database.UnableToConnect"),
-                        e));
-        return false;
-    } catch (Exception e) {
-        JMessageDialog.showMessage(this,
-                new MessageInf(MessageInf.SGN_DANGER,
-                        AppLocal.getIntString("database.UnableToConnect"),
-                        e));
-        return false;
-    } finally {
-        if (con_source != null) {
-            try {
-                con_source.close();
-            } catch (SQLException e) {
-                // log error if needed
-            }
-        }
+            | InstantiationException
+            | IllegalAccessException
+            | SQLException e) {
+
+      JMessageDialog.showMessage(this,
+              new MessageInf(MessageInf.SGN_DANGER,
+                      AppLocal.getIntString("database.UnableToConnect"),
+                      e));
+      return (false);
     }
-}
+
+  }
 
 
   /**
@@ -241,7 +229,7 @@ public final class Transfer extends JPanel implements JPanelView {
    */
   @SuppressWarnings("empty-statement")
   public Boolean createTargetDB() {
-// Transfer is into current MySQL database in unicentaopos.properties
+// Transfer is into current MySQL database in unicentaopos.properties 
 
     targetCreate = "/com/unicenta/pos/scripts/" + sDB_target + "-create-transfer.sql";
     targetFKadd = "/com/unicenta/pos/scripts/MySQL-FKeys.sql";
@@ -326,59 +314,93 @@ public final class Transfer extends JPanel implements JPanelView {
   /**
    * @throws BasicException
    */
-@Override
-public void activate() throws BasicException {
+  @Override
+  public void activate() throws BasicException {
     /*
      * Repeating this block as Transfer can be run externally
      */
 
-    Properties dbProps;
     if ("true".equals(m_props.getProperty("db.multi"))) {
-        ImageIcon icon = new ImageIcon(getClass().getResource("/com/unicenta/images/unicentaopos.png"));
-        Object[] dbs = {"0 - " + m_props.getProperty("db.name"), "1 - " + m_props.getProperty("db1.name")};
-        Object s = JOptionPane.showInputDialog(null, AppLocal.getIntString("message.databasechoose"), "Selection", JOptionPane.OK_OPTION, icon, dbs, m_props.getProperty("db.name"));
+      ImageIcon icon = new ImageIcon("/com/unicenta/images/unicentaopos.png");
+      Object[] dbs = {
+              "0 - " + m_props.getProperty("db.name"),
+              "1 - " + m_props.getProperty("db1.name")};
 
-        if (s.toString().startsWith("1")) {
-            dbProps = readDbProperties(m_props, "db1");
-        } else {
-            dbProps = readDbProperties(m_props, "db");
+      Object s = (Object) JOptionPane.showInputDialog(
+              null, AppLocal.getIntString("message.databasechoose"),
+              "Selection", JOptionPane.OK_OPTION,
+              icon, dbs, m_props.getProperty("db.name"));
+
+      if (s.toString().startsWith("1")) {
+        db_url = (m_props.getProperty("db1.URL"));
+        db_schema = (m_props.getProperty("db1.schema"));
+        db_options = (m_props.getProperty("db1.options"));
+        db_user = (m_props.getProperty("db1.user"));
+        db_password = (m_props.getProperty("db1.password"));
+        if (db_user != null && db_password != null && db_password.startsWith("crypt:")) {
+          AltEncrypter cypher = new AltEncrypter("cypherkey" + db_user);
+          db_password = cypher.decrypt(db_password.substring(6));
         }
-    } else {
-        dbProps = readDbProperties(m_props, "db");
-    }
-
-    String dbUrl = dbProps.getProperty("URL") + dbProps.getProperty("schema") + dbProps.getProperty("options");
-    String dbUser = dbProps.getProperty("user");
-    String dbPassword = dbProps.getProperty("password");
-    if (dbUser != null && dbPassword != null && dbPassword.startsWith("crypt:")) {
-        AltEncrypter cypher = new AltEncrypter("cypherkey" + dbUser);
+        String url = db_url + db_schema + db_options;
         try {
-        db_password = cypher.decrypt(db_password.substring(6));
-    } catch (IOException ex) {
-        throw new BasicException(ex);
-    }
-    }
+          session_target = new Session(url, db_user, db_password);
+          con_target = DriverManager.getConnection(url, db_user, db_password);
+          sDB_target = con_target.getMetaData().getDatabaseProductName();
+          jlblSource.setText(con_target.getCatalog());
+        } catch (SQLException e) {
+          JMessageDialog.showMessage(this,
+                  new MessageInf(MessageInf.SGN_DANGER,
+                          AppLocal.getIntString("database.UnableToConnect"),
+                          e));
+        }
 
-    try {
-        session_target = new Session(dbUrl, dbUser, dbPassword);
-        con_target = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
+      } else {
+        db_url = (m_props.getProperty("db.URL"));
+        db_schema = (m_props.getProperty("db.schema"));
+        db_options = (m_props.getProperty("db.options"));
+        db_user = (m_props.getProperty("db.user"));
+        db_password = (m_props.getProperty("db.password"));
+        if (db_user != null && db_password != null && db_password.startsWith("crypt:")) {
+          AltEncrypter cypher = new AltEncrypter("cypherkey" + db_user);
+          db_password = cypher.decrypt(db_password.substring(6));
+        }
+        String url = db_url + db_schema + db_options;
+        try {
+          session_target = new Session(url, db_user, db_password);
+          con_target = DriverManager.getConnection(url, db_user, db_password);
+          sDB_target = con_target.getMetaData().getDatabaseProductName();
+          jlblSource.setText(con_target.getCatalog());
+        } catch (SQLException e) {
+          JMessageDialog.showMessage(this,
+                  new MessageInf(MessageInf.SGN_DANGER,
+                          AppLocal.getIntString("database.UnableToConnect"),
+                          e));
+        }
+      }
+    } else {
+      db_url = (m_props.getProperty("db.URL"));
+      db_schema = (m_props.getProperty("db.schema"));
+      db_options = (m_props.getProperty("db.options"));
+      db_user = (m_props.getProperty("db.user"));
+      db_password = (m_props.getProperty("db.password"));
+      if (db_user != null && db_password != null && db_password.startsWith("crypt:")) {
+        AltEncrypter cypher = new AltEncrypter("cypherkey" + db_user);
+        db_password = cypher.decrypt(db_password.substring(6));
+      }
+      String url = db_url + db_schema + db_options;
+      try {
+        session_target = new Session(url, db_user, db_password);
+        con_target = DriverManager.getConnection(url, db_user, db_password);
         sDB_target = con_target.getMetaData().getDatabaseProductName();
         jlblSource.setText(con_target.getCatalog());
-    } catch (SQLException e) {
-        Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Unable to connect to database", e);
-        JMessageDialog.showMessage(this, new MessageInf(MessageInf.SGN_DANGER, AppLocal.getIntString("database.UnableToConnect"), e));
+      } catch (SQLException e) {
+        JMessageDialog.showMessage(this,
+                new MessageInf(MessageInf.SGN_DANGER,
+                        AppLocal.getIntString("database.UnableToConnect"),
+                        e));
+      }
     }
-}
-
-private Properties readDbProperties(AppProperties props, String dbName) {
-    Properties dbProps = new Properties();
-    dbProps.setProperty("URL", props.getProperty(dbName + ".URL"));
-    dbProps.setProperty("schema", props.getProperty(dbName + ".schema"));
-    dbProps.setProperty("options", props.getProperty(dbName + ".options"));
-    dbProps.setProperty("user", props.getProperty(dbName + ".user"));
-    dbProps.setProperty("password", props.getProperty(dbName + ".password"));
-    return dbProps;
-}
+  }
 
   /**
    * @return
@@ -437,7 +459,7 @@ private Properties readDbProperties(AppProperties props, String dbName) {
       stmt.addBatch("SET unique_checks=0;");
       stmt.addBatch("SET foreign_key_checks=0;");
 
-      stmt.executeBatch();
+      int[] updateCounts = stmt.executeBatch();
       this.con_target.commit();
 
     } catch (BatchUpdateException b) {
@@ -898,7 +920,7 @@ private Properties readDbProperties(AppProperties props, String dbName) {
           }
           rs.close();
 
-// introduced in 3.70
+// introduced in 3.70                    
           if (Dbtversion >= 3.70) {
             Dbtname = "lineremoved";
             rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
@@ -1082,30 +1104,27 @@ private Properties readDbProperties(AppProperties props, String dbName) {
           }
 // deliberately verbose chunk so can see diff's between PostgreSQL v9 & v10 sequence
           if (Dbtversion >= 3.50 && jtxtDbType.getText().equals("jdbc:postgresql://")) {
-    Dbtname = "pickup_number";
-    rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
-    txtOut.append("Pickup Number" + "\n");
-    SQL = "SELECT * FROM pickup_number";
-    rs = stmt_source.executeQuery(SQL);
+            Dbtname = "pickup_number";
+            rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
+            txtOut.append("Pickup Number" + "\n");
+            SQL = "SELECT * FROM pickup_number";
+            rs = stmt_source.executeQuery(SQL);
 
-    String pickupNumber = null;
+            String pickupNumber = null;
 
-    while (rs.next()) {
-        pickupNumber = rs.getString("last_value");
-    }
+            while (rs.next()) {
+              pickupNumber = rs.getString("last_value");
+            }
 
-    if (pickupNumber != null) {
-        SQL = "UPDATE pickup_number SET ID=?";
-        PreparedStatement pstmt = con_target.prepareStatement(SQL);
-        pstmt.setString(1, pickupNumber);
-        pstmt.executeUpdate();
-    } else {
-        SQL = "UPDATE pickup_number SET ID='1'";
-        stmt_target.executeUpdate(SQL);
-    }
-} else {
-    txtOut.append("Pickup Number... skipped" + "\n");
-}
+            if (pickupNumber != null) {
+              SQL = "UPDATE pickup_number SET ID=" + pickupNumber;
+            } else {
+              SQL = "UPDATE pickup_number SET ID='1'";
+            }
+            stmt_target.executeUpdate(SQL);
+          } else {
+            txtOut.append("Pickup Number... skipped" + "\n");
+          }
           rs.close();
 
           Dbtname = "places";
@@ -1847,158 +1866,126 @@ private Properties readDbProperties(AppProperties props, String dbName) {
           rs.close();
 
           if (Dbtversion >= 3.50 && !jtxtDbType.getText().equals("jdbc:postgresql://")) {
-  Dbtname = "ticketsnum";
-  rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
-  txtOut.append("Tickets Number" + "\n");
-  SQL = "SELECT * FROM ticketsnum";
-  rs = stmt_source.executeQuery(SQL);
+            Dbtname = "ticketsnum";
+            rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
+            txtOut.append("Tickets Number" + "\n");
+            SQL = "SELECT * FROM ticketsnum";
+            rs = stmt_source.executeQuery(SQL);
 
-  while (rs.next()) {
-    ticketsnum = rs.getString("ID");
-  }
-
-  if (ticketsnum != null) {
-    SQL = "UPDATE ticketsnum SET ID=?";
-    PreparedStatement pstmt = con_target.prepareStatement(SQL);
-    pstmt.setString(1, ticketsnum);
-    pstmt.executeUpdate();
-  } else {
-    SQL = "UPDATE ticketsnum SET ID='1'";
-    stmt_target.executeUpdate(SQL);
-  }
-} else {
-  txtOut.append("Ticket Number... skipped" + "\n");
-}
-// deliberately verbose chunk so can see diff's between PostgreSQL v9 & v10
+            while (rs.next()) {
+              ticketsnum = rs.getString("ID");
+            }
+            if (ticketsnum != null) {
+              SQL = "UPDATE ticketsnum SET ID= " + ticketsnum;
+            } else {
+              SQL = "UPDATE ticketsnum SET ID='1'";
+            }
+            stmt_target.executeUpdate(SQL);
+          } else {
+            txtOut.append("Ticket Number... skipped" + "\n");
+          }
+// deliberately verbose chunk so can see diff's between PostgreSQL v9 & v10                    
           if (Dbtversion >= 3.50 && jtxtDbType.getText().equals("jdbc:postgresql://")) {
-  Dbtname = "ticketsnum";
-  rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
-  txtOut.append("Tickets Number" + "\n");
-  SQL = "SELECT * FROM ticketsnum";
-  rs = stmt_source.executeQuery(SQL);
+            Dbtname = "ticketsnum";
+            rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
+            txtOut.append("Tickets Number" + "\n");
+            SQL = "SELECT * FROM ticketsnum";
+            rs = stmt_source.executeQuery(SQL);
 
-  PreparedStatement pstmt_target = null;
-  String updateSQL = "UPDATE ticketsnum SET ID = ?";
-  pstmt_target = con_target.prepareStatement(updateSQL);
-
-  while (rs.next()) {
-    String ticketsnum = rs.getString("last_value");
-    if (ticketsnum != null) {
-      pstmt_target.setString(1, ticketsnum);
-    } else {
-      pstmt_target.setString(1, "1");
-    }
-    pstmt_target.executeUpdate();
-  }
-} else {
-  txtOut.append("Ticket Number... skipped" + "\n");
-}
+            while (rs.next()) {
+              ticketsnum = rs.getString("last_value");
+            }
+            if (ticketsnum != null) {
+              SQL = "UPDATE ticketsnum SET ID= " + ticketsnum;
+            } else {
+              SQL = "UPDATE ticketsnum SET ID='1'";
+            }
+            stmt_target.executeUpdate(SQL);
+          } else {
+            txtOut.append("Ticket Number... skipped" + "\n");
+          }
           rs.close();
 
           if (Dbtversion >= 3.50 && !jtxtDbType.getText().equals("jdbc:postgresql://")) {
-    Dbtname = "ticketsnum_payment";
-    rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
-    txtOut.append("Tickets Number Payments" + "\n");
-    SQL = "SELECT * FROM ticketsnum_payment";
-    rs = stmt_source.executeQuery(SQL);
+            Dbtname = "ticketsnum_payment";
+            rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
+            txtOut.append("Tickets Number Payments" + "\n");
+            SQL = "SELECT * FROM ticketsnum_payment";
+            rs = stmt_source.executeQuery(SQL);
 
-    while (rs.next()) {
-        ticketsnumPayment = rs.getString("ID");
-    }
-    if (ticketsnumPayment != null) {
-        SQL = "UPDATE ticketsnum_payment SET ID= ?";
-        PreparedStatement pstmt = con_target.prepareStatement(SQL);
-        pstmt.setString(1, ticketsnumPayment);
-        pstmt.executeUpdate();
-    } else {
-        SQL = "UPDATE ticketsnum_payment SET ID='1'";
-        stmt_target.executeUpdate(SQL);
-    }
-} else {
-    txtOut.append("Ticket Payment... skipped" + "\n");
-}
-// deliberately verbose chunk so can see diff's between PostgreSQL v9 & v10 sequence
+            while (rs.next()) {
+              ticketsnumPayment = rs.getString("ID");
+            }
+            if (ticketsnumPayment != null) {
+              SQL = "UPDATE ticketsnum_payment SET ID= " + ticketsnumPayment;
+            } else {
+              SQL = "UPDATE ticketsnum_payment SET ID='1'";
+            }
+            stmt_target.executeUpdate(SQL);
+          } else {
+            txtOut.append("Ticket Payment... skipped" + "\n");
+          }
+// deliberately verbose chunk so can see diff's between PostgreSQL v9 & v10 sequence                 
           if (Dbtversion >= 3.50 && jtxtDbType.getText().equals("jdbc:postgresql://")) {
-    Dbtname = "ticketsnum_payment";
-    rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
-    txtOut.append("Tickets Number Payments" + "\n");
-    SQL = "SELECT * FROM ticketsnum_payment";
-    rs = stmt_source.executeQuery(SQL);
+            Dbtname = "ticketsnum_payment";
+            rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
+            txtOut.append("Tickets Number Payments" + "\n");
+            SQL = "SELECT * FROM ticketsnum_payment";
+            rs = stmt_source.executeQuery(SQL);
 
-    while (rs.next()) {
-        ticketsnumPayment = rs.getString("last_value");
-    }
-
-    PreparedStatement pstmt = con_target.prepareStatement("UPDATE ticketsnum_payment SET ID = ?");
-    if (ticketsnumPayment != null) {
-        pstmt.setString(1, ticketsnumPayment);
-    } else {
-        pstmt.setString(1, "1");
-    }
-
-    pstmt.executeUpdate();
-} else {
-    txtOut.append("Ticket Number Payments... skipped" + "\n");
-}
+            while (rs.next()) {
+              ticketsnumPayment = rs.getString("last_value");
+            }
+            if (ticketsnumPayment != null) {
+              SQL = "UPDATE ticketsnum_payment SET ID= " + ticketsnumPayment;
+            } else {
+              SQL = "UPDATE ticketsnum_payment SET ID='1'";
+            }
+            stmt_target.executeUpdate(SQL);
+          } else {
+            txtOut.append("Ticket Number Payments... skipped" + "\n");
+          }
           rs.close();
 
           if (Dbtversion >= 3.50 && !jtxtDbType.getText().equals("jdbc:postgresql://")) {
-    Dbtname = "ticketsnum_refund";
-    rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
-    txtOut.append("Tickets Number Refunds" + "\n");
-    SQL = "SELECT * FROM ticketsnum_refund";
-    try (PreparedStatement pstmt = con_source.prepareStatement(SQL)) {
-        rs = pstmt.executeQuery();
-        while (rs.next()) {
-            ticketsnumRefund = rs.getString("ID");
-        }
-    } catch (SQLException e) {
-        // handle the exception
-    }
-    if (ticketsnumRefund != null) {
-        SQL = "UPDATE ticketsnum_refund SET ID= ?";
-        try (PreparedStatement pstmt = con_target.prepareStatement(SQL)) {
-            pstmt.setString(1, ticketsnumRefund);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            // handle the exception
-        }
-    } else {
-        SQL = "UPDATE ticketsnum_refund SET ID='1'";
-        try (PreparedStatement pstmt = con_target.prepareStatement(SQL)) {
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            // handle the exception
-        }
-    }
-} else {
-    txtOut.append("Ticket Refund... skipped" + "\n");
-}
+            Dbtname = "ticketsnum_refund";
+            rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
+            txtOut.append("Tickets Number Refunds" + "\n");
+            SQL = "SELECT * FROM ticketsnum_refund";
+            rs = stmt_source.executeQuery(SQL);
+
+            while (rs.next()) {
+              ticketsnumRefund = rs.getString("ID");
+            }
+            if (ticketsnumRefund != null) {
+              SQL = "UPDATE ticketsnum_refund SET ID= " + ticketsnumRefund;
+            } else {
+              SQL = "UPDATE ticketsnum_refund SET ID='1'";
+            }
+            stmt_target.executeUpdate(SQL);
+          } else {
+            txtOut.append("Ticket Refund... skipped" + "\n");
+          }
 // deliberately verbose chunk so can see diff's between PostgreSQL v9 & v10 sequence
           if (Dbtversion >= 3.50 && jtxtDbType.getText().equals("jdbc:postgresql://")) {
-    Dbtname = "ticketsnum_refund";
-    rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
-    txtOut.append("Tickets Number Refunds" + "\n");
-    SQL = "SELECT * FROM ticketsnum_refund";
-    PreparedStatement pstmt = con_source.prepareStatement(SQL);
-    rs = pstmt.executeQuery();
+            Dbtname = "ticketsnum_payment";
+            rs = con_source.getMetaData().getTables(null, null, Dbtname, null);
+            txtOut.append("Tickets Number Refunds" + "\n");
+            SQL = "SELECT * FROM ticketsnum_refund";
+            rs = stmt_source.executeQuery(SQL);
 
-    while (rs.next()) {
-        ticketsnumRefund = rs.getString("last_value");
-    }
-
-    if (ticketsnumRefund != null) {
-        SQL = "UPDATE ticketsnum_refund SET ID=?";
-        pstmt = con_target.prepareStatement(SQL);
-        pstmt.setString(1, ticketsnumRefund);
-        pstmt.executeUpdate();
-    } else {
-        SQL = "UPDATE ticketsnum_refund SET ID='1'";
-        stmt_target.executeUpdate(SQL);
-    }
-} else {
-    txtOut.append("Ticket Refund... skipped" + "\n");
-}
+            while (rs.next()) {
+              ticketsnumRefund = rs.getString("last_value");
+            }
+            if (ticketsnumRefund != null) {
+              SQL = "UPDATE ticketsnum_refund SET ID= " + ticketsnumRefund;
+            } else {
+              SQL = "UPDATE ticketsnum_refund SET ID='1'";
+            }
+            stmt_target.executeUpdate(SQL);
+          } else {
+            txtOut.append("Ticket Refund... skipped" + "\n");
+          }
           rs.close();
 
 // introduced in 4
@@ -2062,7 +2049,7 @@ private Properties readDbProperties(AppProperties props, String dbName) {
             log.error(ex.getMessage());
           }
 
-// Add ForeignKeys
+// Add ForeignKeys                   
           JOptionPane.showMessageDialog(this
                   , AppLocal.getIntString("message.transfercomplete")
                   , AppLocal.getIntString("message.transfermessage")
@@ -2129,7 +2116,7 @@ private Properties readDbProperties(AppProperties props, String dbName) {
 
       DriverManager.registerDriver(
               new DriverWrapper((Driver)
-                      Class.forName(driver, true, cloader).getDeclaredConstructor().newInstance()));
+                      Class.forName(driver, true, cloader).newInstance()));
 
       Session session1 = new Session(url, user, password);
 
@@ -2150,22 +2137,10 @@ private Properties readDbProperties(AppProperties props, String dbName) {
 
       jCBSchema.setEnabled(true);
       jCBSchema.setSelectedIndex(0);
-    } catch
-    (InstantiationException
-              | ClassNotFoundException
-              | MalformedURLException
-              | IllegalAccessException ex) {
-        log.error(ex.getMessage());
-
-      } catch (SQLException e) {
-        JMessageDialog.showMessage(this,
-                new MessageInf(MessageInf.SGN_WARNING,
-                        AppLocal.getIntString("message.databaseconnectionerror"), e));
-
-      } catch (Exception e) {
-        JMessageDialog.showMessage(this,
-                new MessageInf(MessageInf.SGN_WARNING, "Unknown exception", e));
-      }
+    } catch (MalformedURLException | ClassNotFoundException | SQLException
+            | InstantiationException | IllegalAccessException ex) {
+      log.error(ex.getMessage());
+    }
   }
 
   public void reset() {
@@ -2794,7 +2769,7 @@ private Properties readDbProperties(AppProperties props, String dbName) {
 
         DriverManager.registerDriver(
                 new DriverWrapper((Driver)
-                        Class.forName(driver, true, cloader).getDeclaredConstructor().newInstance()));
+                        Class.forName(driver, true, cloader).newInstance()));
 
         Session session_source = new Session(url, user, password);
         Connection connection = session_source.getConnection();
@@ -2922,7 +2897,9 @@ private Properties readDbProperties(AppProperties props, String dbName) {
               new File(driverlib).toURI().toURL()
       });
 
-      DriverManager.registerDriver(new DriverWrapper((Driver) Class.forName(driver, true, cloader).getDeclaredConstructor().newInstance()));
+      DriverManager.registerDriver(
+              new DriverWrapper((Driver)
+                      Class.forName(driver, true, cloader).newInstance()));
 
       Session session_source1 = new Session(url, user, password);
       Connection connection = session_source1.getConnection();

@@ -79,14 +79,14 @@ public final class TicketInfo implements SerializableRead, Externalizable {
     private Double nsum;
     private int ticketstatus;
 
-    private static String Hostname;
+    private static String hostname;
 
     public static void setHostname(String name) {
-        Hostname=name;
+        hostname =name;
     }
 
     public static String getHostname() {
-        return Hostname;
+        return hostname;
     }
 
     /** Creates new TicketModel */
@@ -648,7 +648,17 @@ public final class TicketInfo implements SerializableRead, Externalizable {
         String row =(m_config.getProperty("tkt."+data));
         
         return row;
-    }    
+    }
+
+    public String printQRCode(String nameHeader, String vatHeader, String vatLabel){
+        String name = getTicketHeaderFooterData(nameHeader);
+        String vatNumberHeader = getTicketHeaderFooterData(vatHeader);
+        String vatNumber = vatNumberHeader.split(vatLabel)[1];
+        String date = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss").format(getDate());
+        String total = String.valueOf(getTotal());
+        String vatValue = String.valueOf(getTax());
+        return name+","+vatNumber+","+date+","+total+","+vatValue;
+    }
     
     public String printTicketHeaderLine1() {
         String lineData = getTicketHeaderFooterData("header1");

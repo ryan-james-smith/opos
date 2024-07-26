@@ -19,31 +19,23 @@
 
 package com.unicenta.pos.forms;
 
-import com.formdev.flatlaf.FlatDarkLaf;
-import com.formdev.flatlaf.FlatLaf;
-import com.formdev.flatlaf.FlatLightLaf;
-import com.formdev.flatlaf.intellijthemes.FlatCarbonIJTheme;
-import com.formdev.flatlaf.intellijthemes.FlatDraculaIJTheme;
-import com.formdev.flatlaf.intellijthemes.FlatMaterialDesignDarkIJTheme;
-import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatArcDarkIJTheme;
-import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatAtomOneLightIJTheme;
-import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatGitHubIJTheme;
-import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMaterialLighterIJTheme;
+import java.io.IOException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.util.Locale;
+
+import javax.swing.LookAndFeel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.plaf.metal.MetalLookAndFeel;
+
 import com.unicenta.format.Formats;
 import com.unicenta.plugins.Application;
 import com.unicenta.plugins.metrics.Metrics;
 import com.unicenta.pos.instance.InstanceQuery;
 import com.unicenta.pos.ticket.TicketInfo;
-import lombok.extern.slf4j.Slf4j;
-import org.pushingpixels.substance.api.SubstanceLookAndFeel;
-import org.pushingpixels.substance.api.SubstanceSkin;
 
-import javax.swing.*;
-import javax.swing.plaf.metal.MetalLookAndFeel;
-import java.io.IOException;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
-import java.util.Locale;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class StartPOS {
@@ -106,7 +98,6 @@ public class StartPOS {
 
       String hostname = config.getProperty("machine.hostname");
       TicketInfo.setHostname(hostname);
-      applicationStarted(hostname);
 
       String screenmode = config.getProperty("machine.screenmode");
 
@@ -114,6 +105,8 @@ public class StartPOS {
         JRootKiosk rootkiosk = new JRootKiosk();
         try {
           rootkiosk.initFrame(config);
+          applicationStarted(hostname, rootkiosk.getRootapp());
+
         } catch (IOException ex) {
           log.error(ex.getMessage());
         }
@@ -121,18 +114,25 @@ public class StartPOS {
         JRootFrame rootframe = new JRootFrame();
         try {
           rootframe.initFrame(config);
+          applicationStarted(hostname, rootframe.getRootapp());
         } catch (Exception ex) {
           log.error(ex.getMessage());
         }
       }
     });
   }
-  private static void applicationStarted(String host) {
+  private static void applicationStarted(String host, JRootApp jRootApp) {
     new Thread(() -> {
-      Metrics metrics = new Metrics();
-      metrics.setDevice(host);
-      metrics.setUniCentaVersion(AppLocal.APP_VERSION);
-      new Application().postMetrics(metrics);
+      try {
+        Metrics metrics = new Metrics();
+        metrics.setDevice(host);
+        metrics.setUniCentaVersion(AppLocal.APP_VERSION);
+        Application application = new Application();
+        application.postMetrics(metrics);
+        application.startEventListener(host, jRootApp);
+      } catch (Exception e) {
+        log.error("Problem with starting the uniCenta plugin application:${}", e.getMessage());
+      }
     }).start();
   }
 }

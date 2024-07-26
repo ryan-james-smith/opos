@@ -42,7 +42,6 @@ import com.unicenta.pos.panels.JProductFinder;
 import com.unicenta.pos.payment.JPaymentSelect;
 import com.unicenta.pos.payment.JPaymentSelectReceipt;
 import com.unicenta.pos.payment.JPaymentSelectRefund;
-import com.unicenta.pos.printer.DeviceTicket;
 import com.unicenta.pos.printer.TicketParser;
 import com.unicenta.pos.printer.TicketPrinterException;
 import com.unicenta.pos.sales.restaurant.RestaurantDBUtils;
@@ -1839,9 +1838,11 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
 
               try {
                 dlSales.saveTicket(ticket, m_App.getInventoryLocation());
-                m_config.setProperty("lastticket.number", Integer.toString(ticket.getTicketId()));
-                m_config.setProperty("lastticket.type", Integer.toString(ticket.getTicketType()));
-                m_config.saveWithExistingProperties();
+                String lastTicketNumber = Integer.toString(ticket.getTicketId());
+                String lastTicketType = Integer.toString(ticket.getTicketType());
+                m_config.setProperty("lastticket.number", lastTicketNumber);
+                m_config.setProperty("lastticket.type", lastTicketType);
+                m_config.setLastTicket(lastTicketNumber, lastTicketType);
 
               } catch (BasicException eData) {
                 MessageInf msg = new MessageInf(MessageInf.SGN_NOTICE, AppLocal.getIntString("message.nosaveticket"), eData);
@@ -3269,7 +3270,11 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
     if (listener != null) {
       listener.stop();
     }
-    Object[] options = {"Create", "Find", "Cancel"};
+    Object[] options = {
+            AppLocal.getIntString("label.create"),
+            AppLocal.getIntString("label.find"),
+            AppLocal.getIntString("label.cancel")
+    };
 
     int n = JOptionPane.showOptionDialog(null,
             AppLocal.getIntString("message.customeradd"),

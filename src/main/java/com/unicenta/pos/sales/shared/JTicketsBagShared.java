@@ -33,17 +33,17 @@ import com.unicenta.pos.sales.ReprintTicketInfo;
 import com.unicenta.pos.sales.SharedTicketInfo;
 import com.unicenta.pos.sales.TicketsEditor;
 import com.unicenta.pos.ticket.TicketInfo;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.List;
 import java.util.UUID;
-import javax.swing.JComponent;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 
 /**
  *
  * @author JG uniCenta
  */
+@Slf4j
 public class JTicketsBagShared extends JTicketsBag {
     
     private String m_sCurrentTicket = null;
@@ -75,6 +75,24 @@ public class JTicketsBagShared extends JTicketsBag {
      */
     @Override
     public void activate() {
+
+        log.debug("Loading Sales screen! "+this.getClass());
+
+        SwingWorker<String, String> reloadLayaway = new SwingWorker<>() {
+            @Override
+            protected String doInBackground() throws Exception {
+                while (true) {
+                    log.debug("refresh screen");
+                    updateCount();
+                    Thread.sleep(5000);
+                }
+
+                //return null;
+            }
+        };
+
+        reloadLayaway.execute();
+
         
         m_sCurrentTicket = null;
         selectValidTicket();     
@@ -362,9 +380,9 @@ public class JTicketsBagShared extends JTicketsBag {
                             || m_App.getAppUserView().getUser().hasPermission("sales.ViewSharedTicket")
                             || m_App.getAppUserView().getUser().hasPermission("sales.Override"))
                     {
-                        List<SharedTicketInfo> l = dlReceipts.getSharedTicketList();
+                        List<SharedTicketInfo> sharedTicketList = dlReceipts.getSharedTicketList();
                         JTicketsBagSharedList listDialog = JTicketsBagSharedList.newJDialog(JTicketsBagShared.this);
-                        String id = listDialog.showTicketsList(l, dlReceipts);
+                        String id = listDialog.showTicketsList(sharedTicketList, dlReceipts);
 
                         if (id != null) {
                             saveCurrentTicket();

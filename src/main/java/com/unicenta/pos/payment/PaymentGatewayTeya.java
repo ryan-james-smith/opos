@@ -24,15 +24,14 @@ import com.unicenta.plugins.common.AppContext;
 import com.unicenta.pos.util.RoundUtils;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 
 @Slf4j
-public class PaymentGatewayPaymentSense implements PaymentGateway {
+public class PaymentGatewayTeya implements PaymentGateway {
 
     /** Creates a new instance of PaymentGatewayExt */
-    public PaymentGatewayPaymentSense() {
+    public PaymentGatewayTeya() {
     }
 
     Window getPaymentWindow(double amount) {
@@ -65,12 +64,13 @@ public class PaymentGatewayPaymentSense implements PaymentGateway {
     public void execute(PaymentInfoMagcard payinfo) {
 
         int timer = 0;
-        int timeout = 180;
+        int timeout = 150;
 
         double roundedValue = RoundUtils.round(payinfo.getTotal());
-        new Application().paymentSenseTransaction(roundedValue, getPaymentWindow(roundedValue));
 
-        while (AppContext.getIsProcessing() == null || AppContext.getIsProcessing()) {
+        new Application().teyaTransaction(roundedValue, getPaymentWindow(roundedValue), payinfo.getTransactionID());
+
+        while (AppContext.getTeyaPaymentResult() == null) {
             try {
                 log.info("uniCenta-oPos: waiting for payment to complete ....");
                 Thread.sleep(1000);
@@ -81,21 +81,21 @@ public class PaymentGatewayPaymentSense implements PaymentGateway {
             }
         }
 
-        if (AppContext.getPaymentResult() == null) {
-            payinfo.paymentError("Transaction Error! Please try again", "No Response");
-        }
-        if (AppContext.getPaymentResult().getTransactionResult().equals("SUCCESSFUL")){
-            payinfo.setCardName(AppContext.getPaymentResult().getCardSchemeName());
-            payinfo.setVerification(AppContext.getPaymentResult().getPaymentMethod());
+        if (AppContext.getTeyaPaymentResult().getStatus().equals("SUCCESSFUL")) {
+            payinfo.setCardName("Teya");
+            payinfo.setVerification("Chip and Pin");
             payinfo.setChipAndPin(true);
             payinfo.paymentOK(
-                    AppContext.getPaymentResult().getAuthCode(),
-                    AppContext.getPaymentResult().getTransactionId(),
-                    AppContext.getPaymentResult().getTransactionResult()
+                    roundedValue > 0 ? AppContext.getTeyaPaymentResult().getReferenceId() : "",
+                    roundedValue > 0 ? AppContext.getTeyaPaymentResult().getGatewayPaymentId() : "",
+                    AppContext.getTeyaPaymentResult().getStatus()
             );
         }
         else {
-            payinfo.paymentError("Transaction Error! Please try again", AppContext.getPaymentResult().getTransactionResult());
+            payinfo.paymentError("Transaction Error! Please try again", AppContext.getTeyaPaymentResult().getStatus());
         }
+
+
+
     }
 }

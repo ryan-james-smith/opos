@@ -1,5 +1,4 @@
 package com.unicenta.pos.admin;
-
 /*---------------------------------------------------------------------------
  * Copyright (c) 1999,2000 Dallas Semiconductor Corporation, All Rights Reserved.
  *
@@ -29,6 +28,9 @@ package com.unicenta.pos.admin;
 
 import com.dalsemi.onewire.OneWireAccessProvider;
 import com.dalsemi.onewire.adapter.DSPortAdapter;
+import com.dalsemi.onewire.adapter.OneWireIOException;
+import com.dalsemi.onewire.container.OneWireContainer;
+import com.dalsemi.onewire.utils.*;
 import com.dalsemi.onewire.application.monitor.*;
 
 
@@ -51,6 +53,7 @@ public class OWWatch
     */
    public static void main (String args [])
    {
+      OneWireContainer owd;
       int              delay;
 
       try
@@ -67,7 +70,7 @@ public class OWWatch
          // clear any previous search restrictions
          adapter.setSearchAllDevices();
          adapter.targetAllFamilies();
-         adapter.setSpeed(DSPortAdapter.SPEED_REGULAR);
+         adapter.setSpeed(adapter.SPEED_REGULAR);
 
          // create the watcher with this adapter
          OWWatch nw = new OWWatch(adapter);

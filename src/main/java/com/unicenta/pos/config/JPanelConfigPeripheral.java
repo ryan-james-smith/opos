@@ -358,6 +358,7 @@ public class JPanelConfigPeripheral extends javax.swing.JPanel implements PanelC
         jcboMachineScale.addItem("dialog1");
         jcboMachineScale.addItem("mtind221");        
         jcboMachineScale.addItem("samsungesp");
+        jcboMachineScale.addItem("samsungesp-v2");
 
         jcboSerialScale.addItem("COM1");
         jcboSerialScale.addItem("COM2");
@@ -612,6 +613,7 @@ public class JPanelConfigPeripheral extends javax.swing.JPanel implements PanelC
         if ("casiopd1".equals(sparam) || 
                 "dialog1".equals(sparam) || 
                 "samsungesp".equals(sparam) ||
+                "samsungesp-v2".equals(sparam) ||
                 "caspdii".equals(sparam) ||
                 "acompc100".equals(sparam) ||
                 "averyberkel6720".equals(sparam) ||                
@@ -820,6 +822,7 @@ public class JPanelConfigPeripheral extends javax.swing.JPanel implements PanelC
         if ("casiopd1".equals(sMachineScale) || 
                 "dialog1".equals(sMachineScale) || 
                 "samsungesp".equals(sMachineScale) ||
+                "samsungesp-v2".equals(sMachineScale) ||
                 "caspdii".equals(sMachineScale) ||
                 "acompc100".equals(sMachineScale) ||                
                 "averyberkel6720".equals(sMachineScale) ||                                
@@ -2307,6 +2310,7 @@ public class JPanelConfigPeripheral extends javax.swing.JPanel implements PanelC
         if ("casiopd1".equals(jcboMachineScale.getSelectedItem()) ||
             "dialog1".equals(jcboMachineScale.getSelectedItem()) ||
             "samsungesp".equals(jcboMachineScale.getSelectedItem()) ||
+            "samsungesp-v2".equals(jcboMachineScale.getSelectedItem()) ||
             "caspdii".equals(jcboMachineScale.getSelectedItem())||
             "acompc100".equals(jcboMachineScale.getSelectedItem())||                
             "averyberkel6720".equals(jcboMachineScale.getSelectedItem())||                                

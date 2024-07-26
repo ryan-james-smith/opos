@@ -52,6 +52,7 @@ public class JPanelConfigPayment extends javax.swing.JPanel implements PanelConf
         initPayments("Not defined", new ConfigPaymentPanelEmpty());
         initPayments("external", new ConfigPaymentPanelEmpty());
         initPayments("PaymentSense",  new ConfigPaymentPanelEmpty());
+        initPayments("Teya",  new ConfigPaymentPanelEmpty());
 
         // Lector de tarjetas.
         jcboCardReader.addItem("Not defined");
@@ -275,6 +276,12 @@ public class JPanelConfigPayment extends javax.swing.JPanel implements PanelConf
 
         if (comboValue(jcboPaymentGateway.getSelectedItem()).equals("PaymentSense")) {
             emvConfigPanel.setVisible(Boolean.TRUE);
+            jcboCardReader.setSelectedItem("EMV");
+            jcboCardReader.setEnabled(Boolean.FALSE);
+
+        }
+        else if (comboValue(jcboPaymentGateway.getSelectedItem()).equals("Teya")) {
+            emvConfigPanel.setVisible(Boolean.FALSE);
             jcboCardReader.setSelectedItem("EMV");
             jcboCardReader.setEnabled(Boolean.FALSE);
         }

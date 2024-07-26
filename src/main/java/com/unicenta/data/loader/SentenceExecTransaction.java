@@ -29,14 +29,14 @@ import com.unicenta.basic.BasicException;
  */
 public abstract class SentenceExecTransaction implements SentenceExec {
     
-    private Session m_s;
+    private Session session;
     
     /**
      *
-     * @param s
+     * @param session
      */
-    public SentenceExecTransaction(Session s) {
-        m_s = s;
+    public SentenceExecTransaction(Session session) {
+        this.session = session;
     }
     
     /**
@@ -66,7 +66,7 @@ public abstract class SentenceExecTransaction implements SentenceExec {
      */
     public final int exec(final Object params) throws BasicException {
         
-        Transaction<Integer> t = new Transaction<Integer>(m_s) {
+        Transaction<Integer> t = new Transaction<Integer>(session) {
             public Integer transact() throws BasicException{
                 return execInTransaction(params);
             }

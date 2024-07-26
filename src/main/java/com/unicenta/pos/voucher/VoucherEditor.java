@@ -49,34 +49,34 @@ public final class VoucherEditor extends javax.swing.JPanel implements EditorRec
     private final DataLogicSystem dlSystem;
     private CustomerInfo customerInfo;
     private final AppView m_app;
-
-    private final ComboBoxValModel<String> m_ReasonModel;
+    
+    private final ComboBoxValModel m_ReasonModel;    
 
      public VoucherEditor(DirtyManager dirty,AppView app) {
         m_app = app;
 
         initComponents();
-
-        dlCustomers = (DataLogicCustomers)
+  
+        dlCustomers = (DataLogicCustomers) 
                 app.getBean("com.unicenta.pos.customers.DataLogicCustomers");
-        dlSystem = (DataLogicSystem)
+        dlSystem = (DataLogicSystem) 
                 app.getBean("com.unicenta.pos.forms.DataLogicSystem");
         m_jNumber.getDocument().addDocumentListener(dirty);
         m_jCustomer.getDocument().addDocumentListener(dirty);
         m_jAmount.getDocument().addDocumentListener(dirty);
         m_jStatus.getDocument().addDocumentListener(dirty);
-
-        jButtonPrint.setVisible(false);
-
-        m_ReasonModel = new ComboBoxValModel<>();
+        
+        jButtonPrint.setVisible(false);       
+        
+        m_ReasonModel = new ComboBoxValModel();
         m_ReasonModel.add(AppLocal.getIntString("cboption.find"));
-        m_ReasonModel.add(AppLocal.getIntString("cboption.create"));
-        jCBCustomer.setModel(m_ReasonModel);
+        m_ReasonModel.add(AppLocal.getIntString("cboption.create"));              
+        jCBCustomer.setModel(m_ReasonModel);   
         jLblStatus.setIcon(null);
 
         writeValueEOF();
     }
-
+     
     @Override
     public void writeValueEOF() {
         id = null;
@@ -87,11 +87,11 @@ public final class VoucherEditor extends javax.swing.JPanel implements EditorRec
         m_jAmount.setText(null);
         m_jAmount.setEnabled(false);
         m_jStatus.setText(null);
-        m_jStatus.setEnabled(false);
-
+        m_jStatus.setEnabled(false);        
+        
         jButtonPrint.setEnabled(false);
     }
-
+    
     @Override
     public void writeValueInsert() {
         id = UUID.randomUUID().toString();
@@ -103,11 +103,11 @@ public final class VoucherEditor extends javax.swing.JPanel implements EditorRec
         m_jAmount.setEnabled(true);
         m_jStatus.setText(null);
         m_jStatus.setText("A");
-
+        
         jButtonPrint.setEnabled(false);
-        jButtonPrint.setEnabled(true);
+        jButtonPrint.setEnabled(true);        
     }
-
+    
     @Override
     public void writeValueDelete(Object value) {
         if ("A".equals(m_jStatus.getText())) {
@@ -125,13 +125,13 @@ public final class VoucherEditor extends javax.swing.JPanel implements EditorRec
             m_jStatus.setEnabled(false);
             jButtonPrint.setEnabled(false);
         } else {
-            JOptionPane.showMessageDialog(this,
+            JOptionPane.showMessageDialog(this, 
                 AppLocal.getIntString("message.voucherdelete"),
                 AppLocal.getIntString("Check"),
                 JOptionPane.WARNING_MESSAGE);
         }
-    }
-
+    }    
+    
     @Override
     public void writeValueEdit(Object value) {
 
@@ -153,10 +153,10 @@ public final class VoucherEditor extends javax.swing.JPanel implements EditorRec
         } else switch (m_jStatus.getText()) {
             case "A":
                 jLblStatus.setIcon(new javax.swing.ImageIcon(getClass()
-                    .getResource("/com/unicenta/images/OK.png")));
+                    .getResource("/com/unicenta/images/ok.png")));
                 m_jNumber.setEnabled(true);
                 m_jAmount.setEnabled(true);
-                m_jCustomer.setEnabled(true);
+                m_jCustomer.setEnabled(true);                
                 jCBCustomer.setEnabled(true);
                 m_jStatus.setText("A");
                 break;
@@ -165,7 +165,7 @@ public final class VoucherEditor extends javax.swing.JPanel implements EditorRec
                     .getResource("/com/unicenta/images/refundit.png")));
                 m_jNumber.setEnabled(false);
                 m_jAmount.setEnabled(false);
-                m_jCustomer.setEnabled(false);
+                m_jCustomer.setEnabled(false);                                
                 jCBCustomer.setEnabled(false);
                 m_jStatus.setText("D");
                 break;
@@ -177,7 +177,7 @@ public final class VoucherEditor extends javax.swing.JPanel implements EditorRec
 
     @Override
     public Object createValue() throws BasicException {
-
+        
         Object[] attr = new Object[5];
 
         attr[0] = id;
@@ -186,15 +186,15 @@ public final class VoucherEditor extends javax.swing.JPanel implements EditorRec
         attr[2] = m_jCustomer.getText();
         attr[3] = Formats.DOUBLE.parseValue(m_jAmount.getText());
         attr[4] = m_jStatus.getText();
-
+        
         return attr;
-    }
-
+    }    
+     
     @Override
     public Component getComponent() {
         return this;
     }
-
+    
     @Override
     public void refresh() {
     }
@@ -204,6 +204,7 @@ public final class VoucherEditor extends javax.swing.JPanel implements EditorRec
      * WARNING: Do NOT modify this code. The content of this method is
      * always regenerated by the Form Editor.
      */
+    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -347,10 +348,10 @@ private void jButtonPrintActionPerformed(java.awt.event.ActionEvent evt) {//GEN-
                     .getDialog(this,m_app,voucherInfo,image);
             dialog.setVisible(true);
         }
-
+                
     } catch (BasicException ex) {
 
-    }
+    }    
 }//GEN-LAST:event_jButtonPrintActionPerformed
 
     private void jCBCustomerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCBCustomerActionPerformed
@@ -361,16 +362,16 @@ private void jButtonPrintActionPerformed(java.awt.event.ActionEvent evt) {//GEN-
             customerInfo = finder.getSelectedCustomer() ;
 
             if (finder.getSelectedCustomer()!=null){
-                m_jCustomer.setText(customerInfo.getName());
+                m_jCustomer.setText(customerInfo.getName()); 
             }
         } else {
 
          JDialogNewCustomer dialog = JDialogNewCustomer.getDialog(this,m_app);
          dialog.setVisible(true);
-
+       
            customerInfo=dialog.getSelectedCustomer();
             if (dialog.getSelectedCustomer()!=null){
-                 m_jCustomer.setText(customerInfo.getName());
+                 m_jCustomer.setText(customerInfo.getName());  
             }
         }
 
@@ -399,11 +400,11 @@ private void jButtonPrintActionPerformed(java.awt.event.ActionEvent evt) {//GEN-
         validate.setValidate(m_jAmount.getText(),ValidateBuilder.IS_DOUBLE,
                 AppLocal.getIntString("message.numericamount"));
         validate.setValidate(m_jStatus.getText(),ValidateBuilder.IS_NOT_EMPTY,
-                AppLocal.getIntString("message.emptystatus"));
+                AppLocal.getIntString("message.emptystatus"));        
         return validate.getValid();
     }
-
-
+    
+    
     public String generateVoucherNumber(){
         String result="";
 
@@ -418,15 +419,15 @@ private void jButtonPrintActionPerformed(java.awt.event.ActionEvent evt) {//GEN-
                newNumber = Integer.parseInt(lastNumber) +1;
            }
             result = result + "-" + getNewNumber(newNumber);
-
+            
             return result;
-
+            
         } catch (BasicException ex) {
         }
         return result;
     }
-
-
+    
+    
     private String getNewNumber(int newNumber){
         String newNo = newNumber + "";
         String zero = "";

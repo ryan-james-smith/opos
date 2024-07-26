@@ -28,16 +28,16 @@ import javax.swing.*;
  *
  * @author  adrian
  */
-public class ComboBoxValModel<E> extends AbstractListModel<E> implements ComboBoxModel<E> {
-
-    private List<E> m_aData;
+public class ComboBoxValModel extends AbstractListModel implements ComboBoxModel {  
+   
+    private List m_aData;
     private IKeyGetter m_keygetter;
     private Object m_selected;
-
+    
     /** Creates a new instance of ComboBoxValModel
      * @param aData
      * @param keygetter */
-    public ComboBoxValModel(List<E> aData, IKeyGetter keygetter) {
+    public ComboBoxValModel(List aData, IKeyGetter keygetter) {
         m_aData = aData;
         m_keygetter = keygetter;
         m_selected = null;
@@ -47,7 +47,7 @@ public class ComboBoxValModel<E> extends AbstractListModel<E> implements ComboBo
      *
      * @param aData
      */
-    public ComboBoxValModel(List<E> aData) {
+    public ComboBoxValModel(List aData) {
         this(aData, KeyGetterBuilder.INSTANCE);
     }
 
@@ -56,21 +56,21 @@ public class ComboBoxValModel<E> extends AbstractListModel<E> implements ComboBo
      * @param keygetter
      */
     public ComboBoxValModel(IKeyGetter keygetter) {
-        this(new ArrayList<>(), keygetter);
+        this(new ArrayList(), keygetter);
     }
 
     /**
      *
      */
     public ComboBoxValModel() {
-        this(new ArrayList<>(), KeyGetterBuilder.INSTANCE);
+        this(new ArrayList(), KeyGetterBuilder.INSTANCE);
     }
-
+    
     /**
      *
      * @param c
      */
-    public void add(E c) {
+    public void add(Object c) {
         m_aData.add(c);
     }
 
@@ -78,7 +78,7 @@ public class ComboBoxValModel<E> extends AbstractListModel<E> implements ComboBo
      *
      * @param c
      */
-    public void del(E c) {
+    public void del(Object c) {
         m_aData.remove(c);
     }
 
@@ -87,19 +87,19 @@ public class ComboBoxValModel<E> extends AbstractListModel<E> implements ComboBo
      * @param index
      * @param c
      */
-    public void add(int index, E c) {
+    public void add(int index, Object c) {
         m_aData.add(index, c);
     }
-
+    
     /**
      *
      * @param aData
      */
-    public void refresh(List<E> aData) {
+    public void refresh(List aData) {
         m_aData = aData;
         m_selected = null;
     }
-
+    
     /**
      *
      * @return
@@ -123,60 +123,62 @@ public class ComboBoxValModel<E> extends AbstractListModel<E> implements ComboBo
             return m_selected.toString();
         }
     }
-
+    
     /**
      *
      * @param aKey
      */
-    public void setSelectedKey(E aKey) {
+    public void setSelectedKey(Object aKey) {
         setSelectedItem(getElementByKey(aKey));
     }
-
+    
     /**
      *
      */
     public void setSelectedFirst() {
         m_selected = (m_aData.isEmpty()) ? null : m_aData.get(0);
     }
-
+    
     /**
      *
      * @param aKey
      * @return
      */
-    public E getElementByKey(E aKey) {
+    public Object getElementByKey(Object aKey) {
         if (aKey != null) {
-            for (E value : m_aData) {
+            Iterator it = m_aData.iterator();
+            while (it.hasNext()) {
+                Object value = it.next();
                 if (aKey.equals(m_keygetter.getKey(value))) {
                     return value;
                 }
-            }
+            }           
         }
         return null;
     }
-
+    
     @Override
-    public E getElementAt(int index) {
+    public Object getElementAt(int index) {
         return m_aData.get(index);
     }
-
+    
     @Override
     public Object getSelectedItem() {
         return m_selected;
     }
-
+    
     @Override
     public int getSize() {
         return m_aData.size();
     }
-
+    
     @Override
     public void setSelectedItem(Object anItem) {
-
+        
         if ((m_selected != null && !m_selected.equals(anItem)) || m_selected == null && anItem != null) {
             m_selected = anItem;
             fireContentsChanged(this, -1, -1);
         }
     }
-
+    
 }

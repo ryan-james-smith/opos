@@ -20,8 +20,8 @@
 package com.unicenta.beans;
 
 import java.awt.ComponentOrientation;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Enumeration;
+import java.util.Vector;
 
 /**
  *
@@ -29,15 +29,15 @@ import java.util.List;
  */
 public class JNumberKeys extends javax.swing.JPanel {
 
-    private List<JNumberEventListener> m_Listeners = new ArrayList<>();
-
+    private Vector m_Listeners = new Vector();
+    
     private boolean minusenabled = true;
     private boolean equalsenabled = true;
-
+    
     /** Creates new form JNumberKeys */
     public JNumberKeys() {
         initComponents ();
-
+        
         m_jKey0.addActionListener(new MyKeyNumberListener('0'));
         m_jKey1.addActionListener(new MyKeyNumberListener('1'));
         m_jKey2.addActionListener(new MyKeyNumberListener('2'));
@@ -51,8 +51,8 @@ public class JNumberKeys extends javax.swing.JPanel {
         m_jKeyDot.addActionListener(new MyKeyNumberListener('.'));
         m_jMultiply.addActionListener(new MyKeyNumberListener('*'));
         m_jCE.addActionListener(new MyKeyNumberListener('\u007f'));
-        m_jPlus.addActionListener(new MyKeyNumberListener('+'));
-        m_jMinus.addActionListener(new MyKeyNumberListener('-'));
+        m_jPlus.addActionListener(new MyKeyNumberListener('+'));        
+        m_jMinus.addActionListener(new MyKeyNumberListener('-'));        
         m_jEquals.addActionListener(new MyKeyNumberListener('='));
     }
 
@@ -66,11 +66,11 @@ public class JNumberKeys extends javax.swing.JPanel {
         m_jPlus.setVisible(value);
         m_jMultiply.setVisible(value);
     }
-
+    
     @Override
     public void setEnabled(boolean b) {
         super.setEnabled(b);
-
+        
         m_jKey0.setEnabled(b);
         m_jKey1.setEnabled(b);
         m_jKey2.setEnabled(b);
@@ -84,16 +84,16 @@ public class JNumberKeys extends javax.swing.JPanel {
         m_jKeyDot.setEnabled(b);
         m_jMultiply.setEnabled(b);
         m_jCE.setEnabled(b);
-        m_jPlus.setEnabled(b);
+        m_jPlus.setEnabled(b);       
         m_jMinus.setEnabled(minusenabled && b);
-        m_jEquals.setEnabled(equalsenabled && b);
+        m_jEquals.setEnabled(equalsenabled && b);   
     }
-
+    
     @Override
     public void setComponentOrientation(ComponentOrientation o) {
         // Nothing to change
     }
-
+    
     /**
      *
      * @param b
@@ -102,7 +102,7 @@ public class JNumberKeys extends javax.swing.JPanel {
         minusenabled = b;
         m_jMinus.setEnabled(minusenabled && isEnabled());
     }
-
+    
     /**
      *
      * @return
@@ -110,7 +110,7 @@ public class JNumberKeys extends javax.swing.JPanel {
     public boolean isMinusEnabled() {
         return minusenabled;
     }
-
+    
     /**
      *
      * @param b
@@ -119,7 +119,7 @@ public class JNumberKeys extends javax.swing.JPanel {
         equalsenabled = b;
         m_jEquals.setEnabled(equalsenabled && isEnabled());
     }
-
+    
     /**
      *
      * @return
@@ -127,7 +127,7 @@ public class JNumberKeys extends javax.swing.JPanel {
     public boolean isEqualsEnabled() {
         return equalsenabled;
     }
-
+    
     /**
      *
      * @param enabled
@@ -138,7 +138,7 @@ public class JNumberKeys extends javax.swing.JPanel {
                     .getResource("/com/unicenta/images/btn00.png")));
         }
     }
-
+    
     /**
      *
      * @return
@@ -146,7 +146,7 @@ public class JNumberKeys extends javax.swing.JPanel {
     public boolean isNumbersOnly() {
         return m_jEquals.isVisible();
     }
-
+    
     /**
      *
      * @param listener
@@ -162,21 +162,24 @@ public class JNumberKeys extends javax.swing.JPanel {
     public void removeJNumberEventListener(JNumberEventListener listener) {
         m_Listeners.remove(listener);
     }
-
+    
     private class MyKeyNumberListener implements java.awt.event.ActionListener {
-
+        
         private final char m_cCad;
-
+        
         public MyKeyNumberListener(char cCad){
             m_cCad = cCad;
         }
         @Override
         public void actionPerformed(java.awt.event.ActionEvent evt) {
-
-            JNumberEvent oEv = new JNumberEvent(JNumberKeys.this, m_cCad);
-            for (var listener : m_Listeners) {
-            listener.keyPerformed(oEv);
-        }
+           
+            JNumberEvent oEv = new JNumberEvent(JNumberKeys.this, m_cCad);            
+            JNumberEventListener oListener;
+            
+            for (Enumeration e = m_Listeners.elements(); e.hasMoreElements();) {
+                oListener = (JNumberEventListener) e.nextElement();
+                oListener.keyPerformed(oEv);
+            }
         }
     }
 

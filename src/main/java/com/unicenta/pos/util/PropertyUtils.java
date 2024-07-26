@@ -23,6 +23,7 @@ public class PropertyUtils {
 
     private Properties m_propsconfig;
     private File configFile;
+    private final String APP_ID = "upos-app";
 
     /**
      *
@@ -42,14 +43,14 @@ public class PropertyUtils {
 
     private void load() {
         // Load Properties
-        try (InputStream in = new FileInputStream(configFile)) {
+        try {
+            InputStream in = new FileInputStream(configFile);
             if (in != null) {
                 m_propsconfig = new Properties();
                 m_propsconfig.load(in);
                 in.close();
             }
         } catch (IOException e) {
-            // Consider adding a logging statement to handle the exception
         }
     }
 
